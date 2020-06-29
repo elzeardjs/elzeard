@@ -3,7 +3,6 @@ import SQLManager from '../collection/sql'
 
 export interface IOptions {
     nodeModel: Model | null
-    save(a: Model | void): void;
     sql(): SQLManager | void;
 }
 
@@ -12,7 +11,6 @@ export default class OptionManager {
     private _m: Model
     private _options: IOptions = {
         nodeModel: null,
-        save: () => undefined,
         sql: () => undefined,
     }
 
@@ -59,7 +57,6 @@ export default class OptionManager {
     */
     public kids = () => {
         return {
-            save: this._model().save,
             sql: this._model().sql
         }
     }

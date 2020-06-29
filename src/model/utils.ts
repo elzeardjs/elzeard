@@ -1,11 +1,9 @@
-import Model from './'
-import Manager from '../manager'
 import _ from 'lodash'
 import { Engine } from 'joi-to-sql'
 import Collection from '../collection'
-export const STORE_OPTION = 'store'
-const isStoreOption = (option: any) => option === STORE_OPTION
-const DATE_PATTERN = '____AS-Date____'
+import config from '../config'
+import Model from './'
+import Manager from '../manager'
 
 //Return the state to JSONified object.
 //It implies that the state is an array, an object or a Model typed class (model or extended from Model)
@@ -34,16 +32,34 @@ export const toPlain = (m: Model, option: any): any => {
             return
         }
 
-        if (isStoreOption(option) && o instanceof Date){
-            o = `${DATE_PATTERN}${o.getTime().toString()}`
-        }
-
         _.set(ret, path, o)
     }
 
     recur(m.state, '')
 
     return ret
+}
+
+export const isBackFormat = (m: Model) => {
+    for (const key in m.state){
+        if (m.state[key] instanceof Model)
+            return false
+    }
+    return true
+}
+
+export const isFrontable = (m: Model) => {
+    const foreigns = new Engine(m.schema as any, {}).analyze().foreign_keys
+
+    for (let foreign of foreigns){
+        const { key_reference, table_reference, key } = foreign
+        const collectionRef = Manager.collections().node(table_reference) as Collection
+        const node = collectionRef.option().nodeModel() as Model
+        if (new Engine(node.schema as any, {}).analyze().primary_key === key_reference){
+            return true
+        }
+    }
+    return false
 }
 
 export const turnToBack = (m: Model) => {
@@ -61,17 +77,19 @@ export const turnToBack = (m: Model) => {
     }
 }
 
-export const turnToFront = async (m: Model) => {
+export const turnToFront = async (m: any) => {
     if (!m.option().hasReceivedKids())
         throw new Error("Model need to be bound to a collection to perform toAceyObject. You can pass `kids` method as option.")
 
-    for (let foreign of m.sql().getForeignKeys()){
+    const foreigns = new Engine(m.schema() as any, { mysqlConfig: config.mysqlConfig() }).analyze().foreign_keys
+
+    for (let foreign of foreigns){
         const { key_reference, table_reference, key } = foreign
         const collectionRef = Manager.collections().node(table_reference) as Collection
-        const node = collectionRef.option().nodeModel() as Model
+        const node = collectionRef.option().nodeModel() as any
         if (new Engine(node.schema as any, {}).analyze().primary_key === key_reference){
-            console.log(collectionRef.sql().tableName())
-            m.state[key] = await collectionRef.sql().fetchPrimary(m.state[key])
+            console.log(collectionRef.sql().table().name())
+            m.state[key] = await collectionRef.sql().fetch().byPrimary(m.state[key])
         }
     }
 }

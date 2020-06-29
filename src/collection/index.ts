@@ -1,9 +1,11 @@
 import _ from 'lodash'
+import { Engine } from 'joi-to-sql'
 import Model, {IAction} from '../model'
 import IsManager from './is'
 import OptionManager from './option'
 import SQLManager from './sql' 
 import Manager from '../manager'
+import config from '../config'
 
 type Constructor<T> = new(...args: any[]) => T;
 
@@ -59,6 +61,22 @@ export default class Collection {
         return this._defaultState
     }
 
+    //joi-to-sql
+    public joi = () => {
+        const engine = (): Engine => {
+            const m = this.option().nodeModel() as any
+            return new Engine(m.schema, { mysqlConfig: config.mysqlConfig() })
+        }
+
+        return {
+            engine,
+            schemaAnalyzed: () => engine().analyze(),
+            getPrimaryKey: () => engine().analyze()?.primary_key,
+            getForeignKeys: () => engine().analyze()?.foreign_keys,
+            getRefs: () => engine().analyze()?.foreign_keys
+        }
+    }
+    
     public is = (): IsManager => this._is
     public option = (): OptionManager => this._option
     public sql = (): SQLManager => this._sql
@@ -186,10 +204,7 @@ export default class Collection {
         return initialAccumulator
     }
 
-    public reverse = () => {
-        const state = this.state.slice().reverse()
-        return new (this._getNodeCollection())(state, this.option().kids())
-    }
+    public reverse = () => this.newCollection(this.state.slice().reverse())
 
     public shift = (): IAction => {
         const list = this.state.slice()
@@ -198,7 +213,7 @@ export default class Collection {
         return this.action(shifted)
     }
 
-    public slice = (...indexes: any) => new (this._getNodeCollection())(this.state.slice(...indexes), this.option().kids())
+    public slice = (...indexes: any) => this.newCollection(this.state.slice(...indexes))
 
     public splice = (...args: any) => {
         const start = args[0]

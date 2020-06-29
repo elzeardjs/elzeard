@@ -10,7 +10,7 @@ import { Engine } from 'joi-to-sql'
 import SQLManager from '../collection/sql'
 
 export interface IAction {
-    save(m: Model | undefined): any
+    save(): any
     value: any
 }
 
@@ -28,7 +28,7 @@ export default class Model {
         this._is = new IsManager(this)
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
-        this._set(Object.assign({}, this.defaultDateWithSchema(), state))
+        this._set(Object.assign({}, this.defaultSchemaState(), state))
         this._setDefaultState(this.toPlain())
     }
 
@@ -41,7 +41,7 @@ export default class Model {
     }
 
     private _handleStateChanger = (prevStatePlain: any) => {
-        const newStatePlain = this.toPlain()
+        const newStatePlain = this.toPlainBack()
         if (JSON.stringify(prevStatePlain) === JSON.stringify(newStatePlain))
             return
         this._setPrevState(prevStatePlain)
@@ -51,7 +51,6 @@ export default class Model {
     private _setDefaultState = (state: any) => this._defaultState = state
     private _setPrevState = (state: any) => this._prevState = state
     public setPrevStateStore = (state: any) => this._prevStateStore = state
-
 
     public get prevStateStore(){
         return this._prevStateStore
@@ -74,26 +73,40 @@ export default class Model {
 
     public action = (value: any = undefined): IAction => {
         return {
-            save: () => this.save,
+            save: this.save,
             value
         }
     }
     
-    public save = () => this.option().get().save(this)
+    public save = async () => {
+        if (this.option().hasReceivedKids()){
+            const prevStatePlain = this.prevState
+            const newStatePlain = this.toPlainBack()
+            if (JSON.stringify(prevStatePlain) != JSON.stringify(newStatePlain)){
+                const { error } = this.validate(newStatePlain)
+                if (error) throw new Error(error)
+                await this.sql().node(newStatePlain).update()
+            }
+        } else {
+            throw new Error("Model need to be bound to a collection to perform save. You can pass `kids` method as option.")
+        }
+    }
+    
     public sql = () => this.option().get().sql() as SQLManager
 
     //Only usable in a Model/State
     public setState = (o = this.state): IAction => {
-        const prevStatePlain = this.toPlain()
         if (!Model._isObject(o))
             throw new Error("You can only set an object to setState on a Model")
 
         const newState = Object.assign({}, this.state, o)
-        const { error } = this.validate(this.newNodeModel(newState).toPlain())
+        const { error } = this.validate(this.newNodeModel(newState).toPlainBack())
         if (error) throw new Error(error)
 
+        const prevStatePlain = this.toPlainBack()
         this._set(newState)
         this._handleStateChanger(prevStatePlain)
+
         return this.action()
     }
 
@@ -105,13 +118,21 @@ export default class Model {
     //Return the state to JSONified object.
     //It implies that the state is an array, an object or a Model typed class (model or extended from Model)
     public toPlain = (...args: any): any => toPlain(this, args[0])
-    public turnToFront = () => turnToFront(this) 
-    public turnToBack = () => turnToBack(this) 
-    //public toAceyObject = () => 
+    public toPlainBack = () => this.is().backFormat() ? this.toPlain() : this.copy().turnToBack().toPlain()
+    public toString = (): string => JSON.stringify(this.toPlain())
 
+    public turnToFront = async () => {
+        await turnToFront(this) 
+        return this
+    }
 
+    public turnToBack = () => {
+        turnToBack(this)
+        return this
+    }
 
-    public defaultDateWithSchema = () => new Engine(this.schema(), {}).analyze().defaults
+    public defaultSchemaState = () => new Engine(this.schema(), {}).analyze().defaults
+
     public validate = (value: any) => {
         const ret = this.schema().validate(value)
         return {
@@ -120,7 +141,8 @@ export default class Model {
         }
     }
 
-    public toString = (): string => JSON.stringify(this.toPlain())
+    public copy = (): Model => this.newNodeModel(this.state)
+
     public newNodeModel = (defaultState: any) => new (this._getNodeModel())(defaultState, this.option().kids())  
 
     private _getNodeModel = (): any => this.option().nodeModel() as Model

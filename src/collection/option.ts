@@ -40,9 +40,7 @@ export default class OptionManager {
 
     public kids = () => {
         return {
-            save: this._collection().save,
-            sql: this._collection().sql,
-            with_kids: true
+            sql: this._collection().sql
         }
     }
 }

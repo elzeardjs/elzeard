@@ -31,7 +31,7 @@ export default class CollectionsManager {
     public dropAllTable = async () => {
         for (let key in this.get()){
             const c = this.node(key)
-            await c.sql().dropTable()
+            await c.sql().table().drop()
         }
     }
 
@@ -44,9 +44,9 @@ export default class CollectionsManager {
         let toCreate: Collection[] = []
         for (let key in this.get()){
             const c = this.node(key)
-            if (c.sql().getForeignKeys().length == 0){
+            if (c.joi().getForeignKeys().length == 0){
                 try {
-                    await c.sql().createTable()
+                    await c.sql().table().create()
                 } catch (e){
                     throw new Error(e)
                 }
@@ -56,13 +56,13 @@ export default class CollectionsManager {
         }
         for (let i = 0; i < toCreate.length; i++){
             const c = toCreate[i]
-            const listKeys = toArrayTableRef(c.sql().getForeignKeys())
+            const listKeys = toArrayTableRef(c.joi().getForeignKeys())
             let count = 0
             for (const key of listKeys){
                 await SQLManager.isTableCreated(key) && count++
             }
             if (count === listKeys.length){
-                await c.sql().createTable()
+                await c.sql().table().create()
                 toCreate.splice(i, 1)
                 i = 0;
             }
