@@ -62,7 +62,7 @@ export const isFrontable = (m: Model) => {
     return false
 }
 
-export const turnToBack = (m: Model) => {
+export const unpopulate = (m: Model) => {
     const node = m.option().nodeModel() as any
     for (const key in m.state){
         if (m.state[key] instanceof Model){
@@ -77,9 +77,9 @@ export const turnToBack = (m: Model) => {
     }
 }
 
-export const turnToFront = async (m: any) => {
+export const populate = async (m: any) => {
     if (!m.option().hasReceivedKids())
-        throw new Error("Model need to be bound to a collection to perform toAceyObject. You can pass `kids` method as option.")
+        throw new Error("Model need to be bound to a collection to perform populate. You can pass `kids` method as option.")
 
     const foreigns = new Engine(m.schema() as any, { mysqlConfig: config.mysqlConfig() }).analyze().foreign_keys
 
@@ -88,7 +88,6 @@ export const turnToFront = async (m: any) => {
         const collectionRef = Manager.collections().node(table_reference) as Collection
         const node = collectionRef.option().nodeModel() as any
         if (new Engine(node.schema as any, {}).analyze().primary_key === key_reference){
-            console.log(collectionRef.sql().table().name())
             m.state[key] = await collectionRef.sql().fetch().byPrimary(m.state[key])
         }
     }

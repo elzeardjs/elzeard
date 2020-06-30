@@ -6,6 +6,8 @@ import OptionManager from './option'
 import SQLManager from './sql' 
 import Manager from '../manager'
 import config from '../config'
+import { populate } from './utils'
+
 
 type Constructor<T> = new(...args: any[]) => T;
 
@@ -26,7 +28,7 @@ export default class Collection {
     private _sql: SQLManager
 
     constructor(list: any[] = [], models: [Constructor<Model>, Constructor<Collection>], ...props: any){
-        this._option = new OptionManager(this, Object.assign({}, { nodeModel: models[0], collectionModel: models[1] }, props[0]))
+        this._option = new OptionManager(this, Object.assign({}, { nodeModel: models[0], nodeCollection: models[1] }, props[0]))
         this._is = new IsManager(this)
         this._sql = new SQLManager(this)
         this._setDefaultState(this.state)
@@ -40,9 +42,9 @@ export default class Collection {
     private _setPrevStateStore = (state: any) => this._prevStateStore = state
 
     public set = (state: any[] = this.state): IAction => {
-        this._setPrevState(this.state)
+        this._setPrevState(this.toPlain())
         this._state = this.toListClass(state)
-        return this.action()        
+        return this.action() 
     }
 
     public get prevStateStore(){
@@ -261,11 +263,6 @@ export default class Collection {
         return this.push(vCopy)
     }
 
-
-    public newFromPull = (rows: any[]): Collection => {
-        this._setPrevStateStore(rows.slice())
-        return this.newCollection(rows)
-    }
     /*
         Transform an array of object into an array of instancied Model
         Exemple => 
@@ -287,6 +284,11 @@ export default class Collection {
         const ret: any[] = []
         this.state.forEach((m: Model) => ret.push(m.toPlain()))
         return ret
+    }
+
+    public populate = async () => {
+        await populate(this)
+        return this
     }
 
     public toString = (): string => JSON.stringify(this.toPlain())

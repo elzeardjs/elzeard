@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import Errors from '../errors'
-import { toPlain, turnToBack, turnToFront } from './utils'
+import { toPlain, unpopulate, populate } from './utils'
 import {  verifyAllModel } from '../verify'
 
 import IsManager from './is'
@@ -85,7 +85,7 @@ export default class Model {
             if (JSON.stringify(prevStatePlain) != JSON.stringify(newStatePlain)){
                 const { error } = this.validate(newStatePlain)
                 if (error) throw new Error(error)
-                await this.sql().node(newStatePlain).update()
+                await this.sql().node(this).update()
             }
         } else {
             throw new Error("Model need to be bound to a collection to perform save. You can pass `kids` method as option.")
@@ -118,16 +118,16 @@ export default class Model {
     //Return the state to JSONified object.
     //It implies that the state is an array, an object or a Model typed class (model or extended from Model)
     public toPlain = (...args: any): any => toPlain(this, args[0])
-    public toPlainBack = () => this.is().backFormat() ? this.toPlain() : this.copy().turnToBack().toPlain()
+    public toPlainBack = () => this.is().backFormat() ? this.toPlain() : this.copy().unpopulate().toPlain()
     public toString = (): string => JSON.stringify(this.toPlain())
 
-    public turnToFront = async () => {
-        await turnToFront(this) 
+    public populate = async () => {
+        await populate(this) 
         return this
     }
 
-    public turnToBack = () => {
-        turnToBack(this)
+    public unpopulate = () => {
+        unpopulate(this)
         return this
     }
 
