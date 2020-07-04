@@ -48,12 +48,11 @@ export default class Model {
         return this
     }
 
-
     constructor(state: any, ...props: any){
         this._is = new IsManager(this)
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
-        this._set(Object.assign({}, this.schema().defaults, this.schema().cleanNonPresentValues(state)))
+        this._set(Object.assign({}, this.schema().defaults(), this.schema().cleanNonPresentValues(state)))
         this.is().plainPopulated() && this.populate()
     }
 
@@ -75,7 +74,7 @@ export default class Model {
 
     public copy = (): Model => this.new(this.state).fillPrevStateStore(this.prevStateStore)
 
-    public new = (defaultState: any) => new (this.option().nodeModel())(defaultState, this.option().kids()) 
+    public new = (defaultState: any) => new (this.option().nodeModel())(defaultState, this.option().kids())
 
     public save = async () => {
         if (this.option().hasReceivedKids()){
@@ -97,13 +96,14 @@ export default class Model {
             throw new Error("You can only set an object to setState on a Model")
 
         const newState = Object.assign({}, this.state, o)
-        const { error } = this.schema().validate(this.new(newState).to().plainUnpopulated())
-        if (error) throw new Error(error)
-
-        const prevStatePlain = this.to().plainUnpopulated()
-        this._set(newState)
-        this._handleStateChanger(prevStatePlain)
-
+        try {
+            this.mustValidateSchema(newState)
+            const prevStatePlain = this.to().plainUnpopulated()
+            this._set(newState)
+            this._handleStateChanger(prevStatePlain)    
+        } catch (e){
+            throw new Error(e)
+        }
         return this.action()
     }
 
@@ -115,6 +115,11 @@ export default class Model {
     public unpopulate = () => {
         unpopulate(this)
         return this
+    }
+
+    mustValidateSchema = (state = this.state) => {
+        const { error } = this.schema().validate(this.new(state).to().plainUnpopulated())
+        if (error) throw new Error(error)
     }
 
     static _isArray = (value: any): boolean => Array.isArray(value)

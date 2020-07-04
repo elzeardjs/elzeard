@@ -145,8 +145,6 @@ export default class Collection {
 
     public first = (): Model | null => this.count() == 0 ? null : this.nodeAt(0)
 
-
-    
     //return the index of the element passed in parameters if it exists in the list.
     public indexOf = (v: any): number => _.findIndex(this.to().plain(), this.newNode(v).to().plain())
 
@@ -165,7 +163,7 @@ export default class Collection {
     }
 
     public new = (v: any): Collection => this.is().nodeCollection(v) ? v : this._newNodeCollectionInstance(v).fillPrevStateStore(this._prevStateStore)
-    public newNode = (v: any): Model => this.is().nodeModel(v) ? v : this._newNodeModelInstance(v)    
+    public newNode = (v: any): Model => this.is().nodeModel(v) ? v : this._newNodeModelInstance(v)
     public nodeAt = (index: number) => this.state[index]
 
     public offset = (offset: number) => this.slice(offset)
@@ -183,7 +181,7 @@ export default class Collection {
     //add an element to the list
     public push = (v: any): IAction => {
         const list = this.state.slice()
-        const n = list.push(this.newNode(v))
+        const n = list.push(this.newNode(v).mustValidateSchema())
         n && this.set(list)
         return this.action(n)
     }
@@ -242,7 +240,7 @@ export default class Collection {
 
     // Update the element at index or post it.
     public update = (v: any, index: number): IAction => {
-        const vCopy = this.newNode(v)
+        const vCopy = this.newNode(v).mustValidateSchema()
         const list = this.state.slice()
         if (list[index]){
             list[index] = vCopy

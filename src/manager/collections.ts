@@ -1,8 +1,7 @@
 import Manager from './manager'
 import Collection from '../collection'
-import SQLManager from '../sql'
 import _ from 'lodash'
-import { IForeign } from 'joi-to-sql'
+import { createTables } from '../knex-tools'
 
 export default class CollectionsManager {
 
@@ -35,44 +34,5 @@ export default class CollectionsManager {
         }
     }
 
-    public createAllTable = async () => {
-        const toArrayTableRef = (list: IForeign[]) => {
-            const ret: string[] = []
-            list.forEach((e) => ret.push(e.table_reference))
-            return ret
-        }
-        let toCreate: Collection[] = []
-        for (let key in this.get()){
-            const c = this.node(key)
-            if (c.schema().getForeignKeys().length == 0){
-                try {
-                    await c.sql().table().create()
-                } catch (e){
-                    throw new Error(e)
-                }
-            } else {
-                toCreate.push(this.node(key))
-            } 
-        }
-        for (let i = 0; i < toCreate.length; i++){
-            const c = toCreate[i]
-            const listKeys = toArrayTableRef(c.schema().getForeignKeys())
-            let count = 0
-            for (const key of listKeys){
-                await SQLManager.isTableCreated(key) && count++
-            }
-            if (count === listKeys.length){
-                await c.sql().table().create()
-                toCreate.splice(i, 1)
-                i = 0;
-            }
-        }
-        if (toCreate.length){
-            let err = []
-            for (let c of toCreate){
-                err.push(c.option().table())
-            }
-            throw new Error(`Table${toCreate.length > 1 ? 's' : ''}: ${err.join(', ')} not created because of crossed foreign keys`)
-        }
-    }
+    public createAllTable = async () => await createTables()
 }
