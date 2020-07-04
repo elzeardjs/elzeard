@@ -1,5 +1,5 @@
-import Model, { IAction } from './'
-import SQLManager from '../collection/sql'
+import Model from './'
+import SQLManager from '../sql'
 
 export interface IOptions {
     nodeModel: Model | null
@@ -28,7 +28,7 @@ export default class OptionManager {
     private _set = (o: Object) => this._options = Object.assign({}, this._options, o)
 
     public get = (): IOptions => this._options
-    public nodeModel = () => this.get().nodeModel
+    public nodeModel = (): any => this.get().nodeModel as Model
     public hasReceivedKids = () => this.get().sql() != undefined
 
   /*    kids is setting the options for any nested Model/Collection.
@@ -57,6 +57,7 @@ export default class OptionManager {
     */
     public kids = () => {
         return {
+            ...this.get(),
             sql: this._model().sql
         }
     }

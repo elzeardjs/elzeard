@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Model from './'
-import { isBackFormat, isFrontable } from './utils'
+import { isUnpopulatedFormat, isPopulatable, isPlainPopulated, isPopulatedFormat } from './utils'
 
 export default class IsManager {
     
@@ -14,6 +14,8 @@ export default class IsManager {
 
     public equal = (m: Model): boolean => this._model().toString() === m.toString()
     public empty = (): boolean => _.isEmpty(this._model().state)
-    public backFormat = (): boolean => isBackFormat(this._model())
-    public frontable = (): boolean => isFrontable(this._model())
+    public unpopulated = (): boolean => isUnpopulatedFormat(this._model())
+    public plainPopulated = (): boolean => isPlainPopulated(this._model())
+    public populated = (): boolean => isPopulatedFormat(this._model())
+    public populatable = (): boolean => isPopulatable(this._model())
 }

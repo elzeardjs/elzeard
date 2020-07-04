@@ -35,12 +35,14 @@ export default class OptionManager {
     public table = (): string => this.get().table
     public isConnected = (): boolean => this.get().connected  
     public get = (): IOptions => this._options
-    public nodeModel = () => this.get().nodeModel
-    public nodeCollection = () => this.get().nodeCollection
+    public nodeModel = (): any => this.get().nodeModel as Model
+    public nodeCollection = (): any => this.get().nodeCollection as Collection
 
     public kids = () => {
         return {
-            sql: this._collection().sql
+            ...this.get(),
+            sql: this._collection().sql,
+            
         }
     }
 }

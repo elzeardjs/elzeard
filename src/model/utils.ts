@@ -40,22 +40,33 @@ export const toPlain = (m: Model, option: any): any => {
     return ret
 }
 
-export const isBackFormat = (m: Model) => {
-    for (const key in m.state){
-        if (m.state[key] instanceof Model)
-            return false
+export const isUnpopulatedFormat = (m: Model) => !(doesContainNestedModel(m) || doesContainNestedObject(m))
+export const isPopulatedFormat = (m: Model) => doesContainNestedModel(m)
+export const isPlainPopulated = (m: Model) => doesContainNestedObject(m)
+
+export const doesContainNestedObject = (m: Model) => {
+    for (const key in m.state){        
+        if (Model._isObject(m.state[key]))
+            return true
     }
-    return true
+    return false
 }
 
-export const isFrontable = (m: Model) => {
-    const foreigns = new Engine(m.schema as any, {}).analyze().foreign_keys
+export const doesContainNestedModel = (m: Model) => {
+    for (const key in m.state){        
+        if (m.state[key] instanceof Model)
+            return true
+    }
+    return false
+}
+
+export const isPopulatable = (m: Model) => {
+    const foreigns = m.schema().getForeignKeys()
 
     for (let foreign of foreigns){
         const { key_reference, table_reference, key } = foreign
         const collectionRef = Manager.collections().node(table_reference) as Collection
-        const node = collectionRef.option().nodeModel() as Model
-        if (new Engine(node.schema as any, {}).analyze().primary_key === key_reference){
+        if (collectionRef.schema().getPrimaryKey() === key_reference){
             return true
         }
     }
@@ -63,10 +74,10 @@ export const isFrontable = (m: Model) => {
 }
 
 export const unpopulate = (m: Model) => {
-    const node = m.option().nodeModel() as any
+
     for (const key in m.state){
         if (m.state[key] instanceof Model){
-            const foreignKey = _.find(new Engine(node.schema, {}).analyze().foreign_keys, { key })
+            const foreignKey = _.find(m.schema().getForeignKeys(), { key })
             if (!foreignKey){
                 delete m.state[key]
                 continue;
@@ -77,18 +88,32 @@ export const unpopulate = (m: Model) => {
     }
 }
 
-export const populate = async (m: any) => {
+export const plainPopulateToPopulate = (m: Model) => {
+    if (m.is().plainPopulated()){
+        const foreigns = m.schema().getForeignKeys()
+
+        for (let foreign of foreigns){
+            const { key_reference, table_reference, key } = foreign
+            const collectionRef = Manager.collections().node(table_reference) as Collection
+            if (collectionRef.schema().getPrimaryKey() === key_reference && Model._isObject(m.state[key]))
+                m.state[key] = collectionRef.newNode(m.state[key])
+        }
+    }
+}
+
+export const populate = async (m: Model) => {
     if (!m.option().hasReceivedKids())
         throw new Error("Model need to be bound to a collection to perform populate. You can pass `kids` method as option.")
 
-    const foreigns = new Engine(m.schema() as any, { mysqlConfig: config.mysqlConfig() }).analyze().foreign_keys
+    if (m.is().plainPopulated())
+        return plainPopulateToPopulate(m)
+
+    const foreigns = m.schema().getForeignKeys()
 
     for (let foreign of foreigns){
         const { key_reference, table_reference, key } = foreign
         const collectionRef = Manager.collections().node(table_reference) as Collection
-        const node = collectionRef.option().nodeModel() as any
-        if (new Engine(node.schema as any, {}).analyze().primary_key === key_reference){
+        if (collectionRef.schema().getPrimaryKey() === key_reference)
             m.state[key] = await collectionRef.sql().fetch().byPrimary(m.state[key])
-        }
     }
 }

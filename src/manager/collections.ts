@@ -1,6 +1,6 @@
 import Manager from './manager'
 import Collection from '../collection'
-import SQLManager from '../collection/sql'
+import SQLManager from '../sql'
 import _ from 'lodash'
 import { IForeign } from 'joi-to-sql'
 
@@ -44,7 +44,7 @@ export default class CollectionsManager {
         let toCreate: Collection[] = []
         for (let key in this.get()){
             const c = this.node(key)
-            if (c.joi().getForeignKeys().length == 0){
+            if (c.schema().getForeignKeys().length == 0){
                 try {
                     await c.sql().table().create()
                 } catch (e){
@@ -56,7 +56,7 @@ export default class CollectionsManager {
         }
         for (let i = 0; i < toCreate.length; i++){
             const c = toCreate[i]
-            const listKeys = toArrayTableRef(c.joi().getForeignKeys())
+            const listKeys = toArrayTableRef(c.schema().getForeignKeys())
             let count = 0
             for (const key of listKeys){
                 await SQLManager.isTableCreated(key) && count++
