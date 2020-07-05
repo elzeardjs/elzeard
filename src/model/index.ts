@@ -52,6 +52,10 @@ export default class Model {
         this._is = new IsManager(this)
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
+        if (!this.option().nodeModel().schema){
+            throw new Error("Every model must contain a schema")
+        }
+
         this._set(Object.assign({}, this.schema().defaults(), this.schema().cleanNonPresentValues(state)))
         this.is().plainPopulated() && this.populate()
     }
@@ -120,6 +124,7 @@ export default class Model {
     mustValidateSchema = (state = this.state) => {
         const { error } = this.schema().validate(this.new(state).to().plainUnpopulated())
         if (error) throw new Error(error)
+        return this
     }
 
     static _isArray = (value: any): boolean => Array.isArray(value)

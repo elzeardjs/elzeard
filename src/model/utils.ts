@@ -7,7 +7,7 @@ import Manager from '../manager'
 
 //Return the state to JSONified object.
 //It implies that the state is an array, an object or a Model typed class (model or extended from Model)
-export const toPlain = (m: Model, option: any): any => {
+export const toPlain = (m: Model): any => {
     const ret: any = {}; 
     
     const recur = (o: any, path: string) => {

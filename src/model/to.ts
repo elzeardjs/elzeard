@@ -4,7 +4,7 @@ import { toPlain } from './utils'
 export default (m: Model) => {
     const isUnpopulated = m.is().unpopulated()
 
-    const plain = (...args: any): any => toPlain(m, args[0])
+    const plain = (): any => toPlain(m)
     const plainUnpopulated = () => isUnpopulated ? plain() : m.copy().unpopulate().to().plain()
     const plainPopulated = async () => (await m.copy().populate()).to().plain()
 

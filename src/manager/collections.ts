@@ -1,7 +1,8 @@
 import Manager from './manager'
 import Collection from '../collection'
 import _ from 'lodash'
-import { createTables } from '../knex-tools'
+import { createTables, dropAllTables } from '../knex-tools'
+import SQLManager from '../sql'
 
 export default class CollectionsManager {
 
@@ -27,12 +28,7 @@ export default class CollectionsManager {
             callback(this.get()[key], key)
     }
 
-    public dropAllTable = async () => {
-        for (let key in this.get()){
-            const c = this.node(key)
-            await c.sql().table().drop()
-        }
-    }
+    public dropAllTable = async () => await dropAllTables()
 
     public createAllTable = async () => await createTables()
 }

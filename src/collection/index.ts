@@ -60,7 +60,7 @@ export default class Collection {
         this.is().connected() && Manager.prepareCollection(this)
     }
 
-    private changesFromLastSave = () => {
+    private _changesFromLastSave = () => {
         const primary = this.schema().getPrimaryKey()
         const toDelete: any[] = []
         const toUpdate: Model[] = []
@@ -69,17 +69,15 @@ export default class Collection {
         const currentStateStore = this.to().plainUnpopulated()
 
         prevStateStore.forEach( (value) => !!value[primary] && !_.find(currentStateStore, {[primary]: value[primary]}) && toDelete.push(value))
-        this.state.forEach((value: Model) => !_.find(prevStateStore, value.to().plainUnpopulated()) && toUpdate.push(value))
+        this.state.forEach( (value: Model) => !_.find(prevStateStore, value.to().plainUnpopulated()) && toUpdate.push(value))
 
         return { toDelete: this.to().listClass(toDelete), toUpdate: toUpdate }
     }
 
     public save = async () => {
-        const { toDelete, toUpdate } = this.changesFromLastSave()
-        console.log('delete', this.new(toDelete).to().plainUnpopulated())
-        console.log('toUpdate', this.new(toUpdate).to().plainUnpopulated())
-        await this.sql().list(toDelete).remove()
-        await this.sql().list(toUpdate).update()
+        const { toDelete, toUpdate } = this._changesFromLastSave()
+        toDelete.length && await this.sql().list(toDelete).remove()
+        toUpdate.length && await this.sql().list(toUpdate).update()
         this.fillPrevStateStore()
     }
 
@@ -102,10 +100,14 @@ export default class Collection {
         return this.action() 
     }
 
+    public append = (...values: any) => this.set(this.state.concat(values.map((value: any) => this.newNode(value).mustValidateSchema())))
+
     //Return the number of element in the array
     public count = (): number => this.state.length
 
     public copy = (): Collection => this.new(this.to().plain())
+
+    public ctx = (): Collection => this.new()
 
     //delete a node if it exists in the list.
     public delete = (v: any): IAction => {
@@ -162,7 +164,7 @@ export default class Collection {
         return ret
     }
 
-    public new = (v: any): Collection => this.is().nodeCollection(v) ? v : this._newNodeCollectionInstance(v).fillPrevStateStore(this._prevStateStore)
+    public new = (v: any = []): Collection => this.is().nodeCollection(v) ? v : this._newNodeCollectionInstance(v).fillPrevStateStore(this._prevStateStore)
     public newNode = (v: any): Model => this.is().nodeModel(v) ? v : this._newNodeModelInstance(v)
     public nodeAt = (index: number) => this.state[index]
 

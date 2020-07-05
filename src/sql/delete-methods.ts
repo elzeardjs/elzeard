@@ -2,9 +2,12 @@ import knex, {QueryBuilder} from 'knex'
 import Collection from '../collection'
 
 export default (collection: Collection) => { 
+    const primary = collection.schema().getPrimaryKey()
     const query = collection.sql().table().query().del()
 
     const queryRunner = async (q: knex.QueryBuilder): Promise<Number> => await q
+
+    const byPrimary = async (value: string | number) => await queryRunner(query.where({[primary]: value}))
 
     const all = async () => await query
     const custom = async (callback: (q: QueryBuilder) => QueryBuilder) => await queryRunner(callback(query))
@@ -18,6 +21,6 @@ export default (collection: Collection) => {
     return {
         all, custom, having, havingNot, query, 
         where, whereNot, whereIn, whereNotIn,
-        queryRunner
+        queryRunner, byPrimary
     }
 }

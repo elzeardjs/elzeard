@@ -31,7 +31,21 @@ export const createTables = async () => {
                 return Manager.collections().node(tName).schema().engine().table(tName)
             }
         })
-        
+
+        return Promise.all(queries).then(trx.commit).catch(trx.rollback)
+    })
+}
+
+export const dropAllTables = async () => {
+
+    return await SQLManager.mysql().transaction(async (trx) => {
+
+        const queries = sortTableToCreate().map(async (tName: string) => {
+            const isCreated = await SQLManager.isTableCreated(tName)
+            if (isCreated)
+                return Manager.collections().node(tName).sql().table().drop()
+        })
+
         return Promise.all(queries).then(trx.commit).catch(trx.rollback)
     })
 }
@@ -52,7 +66,8 @@ export const sortTableToCreate = () => {
             tablesWithFK.push(tName)
     }
 
-    for (let i = 0; i < tablesWithFK.length; i++){
+    let i = 0;
+    while (i < tablesWithFK.length){
         const c = collections.node(tablesWithFK[i])
         const listKeys = toArrayTableRef(c.schema().getForeignKeys())
         
@@ -64,6 +79,8 @@ export const sortTableToCreate = () => {
             tablesToCreate.push(tablesWithFK[i])
             tablesWithFK.splice(i, 1)
             i = 0;
+        } else {
+            i++
         }
     }
 
