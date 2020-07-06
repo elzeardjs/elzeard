@@ -1,14 +1,13 @@
 import _ from 'lodash'
 import Model, {IAction} from '../model'
-import IsManager from './is'
-import OptionManager from './option'
+import IsManager from '../state/is'
+import OptionManager from '../state/option'
 import to from './to'
 import SQLManager from '../sql' 
-import schemaManager from '../schema'
+import schemaManager from '../state/schema'
 import Manager from '../manager'
 
 import { populate } from './utils'
-
 
 type Constructor<T> = new(...args: any[]) => T;
 
@@ -23,7 +22,6 @@ export default class Collection {
     private _state: any = []
     private _prevState: any = []
 
-    private _is: IsManager
     private _option: OptionManager
     private _sql: SQLManager
 
@@ -32,7 +30,7 @@ export default class Collection {
     public get prevState(){ return this._prevState }
 
     public schema = () => schemaManager(this.newNode(undefined))
-    public is = (): IsManager => this._is
+    public is = () => IsManager(this)
     public option = (): OptionManager => this._option
     public sql = (): SQLManager => this._sql
     public to = () => to(this)
@@ -48,16 +46,15 @@ export default class Collection {
     }
 
     public action = (value: any = undefined): IAction => {
-        return { save: this.save, value }
+        return { saveToDB: this.saveToDB, value }
     }
 
     constructor(list: any[] = [], models: [Constructor<Model>, Constructor<Collection>], ...props: any){
         this._option = new OptionManager(this, Object.assign({}, { nodeModel: models[0], nodeCollection: models[1] }, props[0]))
-        this._is = new IsManager(this)
-        this._sql = new SQLManager(this)
+        this._sql = this.is().kidsPassed() ? this.option().sql() as SQLManager : new SQLManager(this)
         this.set(list)
 
-        this.is().connected() && Manager.prepareCollection(this)
+        !this.is().kidsPassed() && Manager.prepareCollection(this)
     }
 
     private _changesFromLastSave = () => {
@@ -74,7 +71,7 @@ export default class Collection {
         return { toDelete: this.to().listClass(toDelete), toUpdate: toUpdate }
     }
 
-    public save = async () => {
+    public saveToDB = async () => {
         const { toDelete, toUpdate } = this._changesFromLastSave()
         toDelete.length && await this.sql().list(toDelete).remove()
         toUpdate.length && await this.sql().list(toUpdate).update()
@@ -89,6 +86,16 @@ export default class Collection {
     public unpopulate = () => {
         this.state.forEach((m: Model) => m.unpopulate())
         return this
+    }
+
+    public create = async (d: any): Promise<Model> => {
+        const m = this.newNode(d).mustValidateSchema()
+        try {
+            await this.sql().node(m).insert()
+            return m
+        } catch (e){
+            throw new Error(e)
+        }
     }
 
     
@@ -179,6 +186,8 @@ export default class Collection {
         poped && this.set(list)
         return this.action(poped)
     }
+
+    public prepend = (...values: any) => this.set(values.map((value: any) => this.newNode(value).mustValidateSchema()).concat(this.state))
 
     //add an element to the list
     public push = (v: any): IAction => {

@@ -23,9 +23,7 @@ export default class Manager {
 
     public collections = () => this._collectionsManager
  
-    public prepareCollection = (c: Collection) => {
-        this.collections().add(c)
-    }
+    public prepareCollection = (c: Collection) => this.collections().add(c)
 
     public isInitialized = () => this._hasBeenInitialized
     public setInitialized = () => this._hasBeenInitialized = true

@@ -3,15 +3,15 @@ import _ from 'lodash'
 import Errors from '../errors'
 import { toPlain, unpopulate, populate } from './utils'
 import {  verifyAllModel } from '../verify'
-import SchemaManager from '../schema'
+import SchemaManager from '../state/schema'
 
 import to from './to'
-import IsManager from './is'
-import OptionManager from './option'
+import IsManager from '../state/is'
+import OptionManager from '../state/option'
 import SQLManager from '../sql'
 
 export interface IAction {
-    save(): Promise<any>
+    saveToDB(): Promise<any>
     value: any
 }
 
@@ -21,21 +21,27 @@ export default class Model {
     private _state: any = {}
     private _prevState: any = {}
 
-    private _is: IsManager
     private _option: OptionManager
-
+    private _group: string[] = []
+    
+    public get group(){ return this._group.slice() }
     public get prevStateStore(){ return this._prevStateStore }
     public get state(){ return this._state }
     public get prevState(){ return this._prevState }
 
     public schema = () => SchemaManager(this)
-    public is = (): IsManager => this._is
+    public is = () => IsManager(this)
     public option = (): OptionManager => this._option
-    public sql = () => this.option().get().sql() as SQLManager
+    public sql = () => this.option().get().sql as SQLManager
     public to = () => to(this)
 
     public action = (value: any = undefined): IAction => {
-        return { save: this.save, value }
+        return { saveToDB: this.saveToDB, value }
+    }
+
+    public fillGroup = (group: string[]) => {
+        this._group = group
+        return this
     }
 
     public fillPrevStateStore = (prevStateStore = this.to().plainUnpopulated()) => {
@@ -49,7 +55,6 @@ export default class Model {
     }
 
     constructor(state: any, ...props: any){
-        this._is = new IsManager(this)
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
         if (!this.option().nodeModel().schema){
@@ -80,8 +85,8 @@ export default class Model {
 
     public new = (defaultState: any) => new (this.option().nodeModel())(defaultState, this.option().kids())
 
-    public save = async () => {
-        if (this.option().hasReceivedKids()){
+    public saveToDB = async () => {
+        if (this.option().isKidsPassed()){
             const prevStatePlain = this.prevState
             const newStatePlain = this.to().plainUnpopulated()
             if (JSON.stringify(prevStatePlain) != JSON.stringify(newStatePlain)){

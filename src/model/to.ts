@@ -2,17 +2,27 @@ import Model from './'
 import { toPlain } from './utils'
 
 export default (m: Model) => {
-    const isUnpopulated = m.is().unpopulated()
+    const mRef = m.copy()
+    const isUnpopulated = mRef.is().unpopulated()
+    let plainOPT: any = undefined
 
-    const plain = (): any => toPlain(m)
-    const plainUnpopulated = () => isUnpopulated ? plain() : m.copy().unpopulate().to().plain()
-    const plainPopulated = async () => (await m.copy().populate()).to().plain()
+    const plain = (): any => toPlain(mRef, plainOPT)
+    const plainUnpopulated = () => isUnpopulated ? plain() : mRef.unpopulate().to().plain()
+    const plainPopulated = async () => (await mRef.populate()).to().plain()
 
     const string = () => JSON.stringify(plain())
     const stringUnpopulated = async () => JSON.stringify(plainUnpopulated())
     const stringPopulated = async () => JSON.stringify(await plainPopulated())
 
-    return { 
+    const filterGroup = (groupName: string | void) => {
+        plainOPT = 'group'
+        const groups = mRef.schema().getGroups()
+        if (groupName && groups[groupName])
+            mRef.fillGroup(groups[groupName])
+        return ret
+    }
+
+    const ret = {
         plain, 
         plainUnpopulated, 
         plainPopulated,
@@ -21,4 +31,6 @@ export default (m: Model) => {
         stringUnpopulated,
         stringPopulated
     }
+
+    return Object.assign({}, ret, {filterGroup})
 }

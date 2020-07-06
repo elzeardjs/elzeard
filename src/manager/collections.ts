@@ -2,7 +2,6 @@ import Manager from './manager'
 import Collection from '../collection'
 import _ from 'lodash'
 import { createTables, dropAllTables } from '../knex-tools'
-import SQLManager from '../sql'
 
 export default class CollectionsManager {
 
@@ -29,6 +28,5 @@ export default class CollectionsManager {
     }
 
     public dropAllTable = async () => await dropAllTables()
-
     public createAllTable = async () => await createTables()
 }

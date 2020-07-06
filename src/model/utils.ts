@@ -1,21 +1,23 @@
 import _ from 'lodash'
-import { Engine } from 'joi-to-sql'
+import { IPopulate } from 'joi-to-sql'
 import Collection from '../collection'
-import config from '../config'
 import Model from './'
 import Manager from '../manager'
 
 //Return the state to JSONified object.
 //It implies that the state is an array, an object or a Model typed class (model or extended from Model)
-export const toPlain = (m: Model): any => {
+export const toPlain = (m: Model, opt: string | void): any => {
     const ret: any = {}; 
     
-    const recur = (o: any, path: string) => {
+    const recur = (o: any, path: string, groupKeys: string[] = []) => {
         
         //if this is a plain object
         if (Model._isObject(o) && Object.keys(o).length > 0){
-            for (var key in o)
-                recur(o[key], !path ? key : path + '.' + key)
+            for (var key in o){
+                if (groupKeys.length == 0 || groupKeys.indexOf(key) != -1) {
+                    recur(o[key], !path ? key : path + '.' + key)
+                }
+            }
             return
         }
 
@@ -28,7 +30,7 @@ export const toPlain = (m: Model): any => {
 
         //if this is a Model class
         if (o instanceof Model){
-            recur(o.state, path)
+            recur(o.state, path, opt === 'group' ? o.group : [])
             return
         }
 
@@ -60,60 +62,59 @@ export const doesContainNestedModel = (m: Model) => {
     return false
 }
 
-export const isPopulatable = (m: Model) => {
-    const foreigns = m.schema().getForeignKeys()
-
-    for (let foreign of foreigns){
-        const { key_reference, table_reference, key } = foreign
-        const collectionRef = Manager.collections().node(table_reference) as Collection
-        if (collectionRef.schema().getPrimaryKey() === key_reference){
-            return true
-        }
-    }
-    return false
-}
+export const isPopulatable = (m: Model) => m.schema().getPopulate().length > 0
 
 export const unpopulate = (m: Model) => {
-
     for (const key in m.state){
         if (m.state[key] instanceof Model){
-            const foreignKey = _.find(m.schema().getForeignKeys(), { key })
-            if (!foreignKey){
+            const populateKey = _.find(m.schema().getPopulate(), { key })
+            if (!populateKey){
                 delete m.state[key]
                 continue;
             }
-            const { key_reference } = foreignKey
+            const { key_reference } = populateKey
             m.state[key] = m.state[key].state[key_reference]
         }
     }
 }
 
+export const handleModelGroup = (populate: IPopulate, m: Model | null) => {
+    const { group_id } = populate
+    if (group_id && m){
+        const groupKeys = m.schema().getGroups()[group_id]
+        groupKeys && m.fillGroup(groupKeys)
+    }
+    return m
+}
+
 export const plainPopulateToPopulate = (m: Model) => {
     if (m.is().plainPopulated()){
-        const foreigns = m.schema().getForeignKeys()
+        const populates = m.schema().getPopulate()
 
-        for (let foreign of foreigns){
-            const { key_reference, table_reference, key } = foreign
+        for (let p of populates){
+            const { table_reference, key } = p
             const collectionRef = Manager.collections().node(table_reference) as Collection
-            if (collectionRef.schema().getPrimaryKey() === key_reference && Model._isObject(m.state[key]))
-                m.state[key] = collectionRef.newNode(m.state[key])
+            if (Model._isObject(m.state[key])){
+                const mRef = collectionRef.newNode(m.state[key])
+                m.state[key] = handleModelGroup(p, mRef)
+            }
         }
     }
 }
 
 export const populate = async (m: Model) => {
-    if (!m.option().hasReceivedKids())
+    if (!m.option().isKidsPassed())
         throw new Error("Model need to be bound to a collection to perform populate. You can pass `kids` method as option.")
 
     if (m.is().plainPopulated())
         return plainPopulateToPopulate(m)
 
-    const foreigns = m.schema().getForeignKeys()
+    const populates = m.schema().getPopulate()
 
-    for (let foreign of foreigns){
-        const { key_reference, table_reference, key } = foreign
+    for (let p of populates){
+        const { key_reference, table_reference, key } = p
         const collectionRef = Manager.collections().node(table_reference) as Collection
-        if (collectionRef.schema().getPrimaryKey() === key_reference)
-            m.state[key] = await collectionRef.sql().fetch().byPrimary(m.state[key])
+        const mRef = await collectionRef.sql().fetch().where({[key_reference]: m.state[key] })
+        m.state[key] = handleModelGroup(p, mRef)
     }
 }

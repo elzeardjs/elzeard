@@ -2,6 +2,7 @@ import SQLManager from './sql'
 import _ from 'lodash'
 import { IForeign } from 'joi-to-sql'
 import Manager from './manager'
+import Knex from 'joi-to-sql/node_modules/knex'
 
 export const insertOrUpdate = async (tableName: string, p: Array<Object> | Object) => {
 
@@ -39,14 +40,16 @@ export const createTables = async () => {
 export const dropAllTables = async () => {
 
     return await SQLManager.mysql().transaction(async (trx) => {
+        const raw1 = [trx.raw('SET foreign_key_checks = 0;').transacting(trx)]
+        const raw2 = [trx.raw('SET foreign_key_checks = 1;').transacting(trx)]
 
         const queries = sortTableToCreate().map(async (tName: string) => {
             const isCreated = await SQLManager.isTableCreated(tName)
             if (isCreated)
                 return Manager.collections().node(tName).sql().table().drop()
-        })
+        }) as Knex.Raw<any>[]
 
-        return Promise.all(queries).then(trx.commit).catch(trx.rollback)
+        return Promise.all(raw1.concat(queries).concat(raw2)).then(trx.commit).catch(trx.rollback)
     })
 }
 
@@ -55,12 +58,13 @@ export const sortTableToCreate = () => {
     let tablesToCreate = []
     let tablesWithFK = []
 
-    const toArrayTableRef = (list: IForeign[]) => list.map((e) => e.table_reference)
+    const toArrayTableRef = (list: IForeign[]): string[] => list.map((e) => e.required ? e.table_reference : '').filter((e) => e != '')
 
     for (let key in collections.get()){
         const c = collections.node(key)
         const tName = c.sql().table().name()
-        if (c.schema().getForeignKeys().length == 0) 
+        const foreignKeys = c.schema().getForeignKeys()
+        if (foreignKeys.length == 0 || _.every(foreignKeys, {required: false})) 
             tablesToCreate.push(tName)
         else 
             tablesWithFK.push(tName)
@@ -70,7 +74,6 @@ export const sortTableToCreate = () => {
     while (i < tablesWithFK.length){
         const c = collections.node(tablesWithFK[i])
         const listKeys = toArrayTableRef(c.schema().getForeignKeys())
-        
         let count = 0
         for (const key of listKeys)
             tablesToCreate.indexOf(key) != -1 && count++
