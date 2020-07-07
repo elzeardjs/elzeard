@@ -13,16 +13,61 @@ export const verifyCrossedPopulateValues = (v: Model) => {
         for (let p of populate){
             const { table_reference: table } = p
             if (table === origin_table){
-                throw new Error(`Crossed populate found in node Model of the collection: ${origin_table}. You can use the method noPopulate() on your shema to disable auto-population mode on foreign keys pointed on primary keys.`)
+                throw new Error(`Crossed populate found in node model of the collection: ${origin_table}. You can use the method noPopulate() on your shema to disable auto-population mode on foreign keys pointed on primary keys.`)
             }
             const c = Manager.collections().node(table) as Collection
             recur(c.newNode(undefined))
         }
     }
-
     recur(v)
 }
 
+export const verifyPopulateExistences = (c: Collection) => {
+    const origin_table = c.sql().table().name()
+    const populate = c.schema().getPopulate()
+
+    for (let p of populate){
+        const { table_reference: table, key_reference, key } = p
+        const cRef = Manager.collections().node(table)
+        if (!cRef)
+            throw new Error(`${origin_table}[${key}] is populated with the key: '${key_reference}' from the TABLE: '${table}'. This TABLE does NOT exist.`)
+        const allKeys = cRef.schema().getAllKeys()
+        if (allKeys.indexOf(key_reference) == -1){
+            throw new Error(`${origin_table}[${key}] is populated with the KEY: '${key_reference}' from the TABLE: '${table}'. This KEY does NOT exist.`)
+        }
+    }
+}
+
+export const verifyForeignKeyExistences = (c: Collection) => {
+    const origin_table = c.sql().table().name()
+    const foreigns = c.schema().getForeignKeys()
+
+    for (let f of foreigns){
+        const { table_reference: table, key_reference, key } = f
+        const cRef = Manager.collections().node(table)
+        if (!cRef)
+            throw new Error(`${origin_table}[${key}] is a defined foreign key pointing towards the key: '${key_reference}' in the TABLE: '${table}'. This TABLE does NOT exist.`)
+        const allKeys = cRef.schema().getAllKeys()
+        if (allKeys.indexOf(key_reference) == -1){
+            throw new Error(`${origin_table}[${key}] is a defined foreign key pointing towards the KEY: '${key_reference}' in the table: '${table}'. This KEY does NOT exist.`)
+        }
+    }
+}
+
+export const verifyGroupingValuesExistence = (c: Collection) => {
+    const origin_table = c.sql().table().name()
+    const populate = c.schema().getPopulate()
+    for (let p of populate){
+        const { table_reference, group_id, key_reference, key } = p
+        if (group_id){
+            const cRef= Manager.collections().node(table_reference) as Collection
+            const mRef = cRef.newNode(undefined)
+            const groups = mRef.schema().getGroups()
+            if (!groups[group_id])
+                throw new Error(`A GROUP_ID: '${group_id}' from the table: '${cRef.sql().table().name()}' is referenced in ${origin_table}[${key}]. This GROUP_ID does NOT exist.`)
+        }
+    }
+}
 
 export const verifyIfContainArrayOfModel = (v: Model) => {
 

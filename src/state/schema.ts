@@ -54,6 +54,7 @@ export default (m: Model) => {
         engine,
         getPopulate,
         analyze: () => engine().analyze(),
+        getAllKeys: () => engine().analyze().all_keys,
         getGroups: () => engine().analyze().groups,
         getPrimaryKey: () => engine().analyze().primary_key as string,
         getForeignKeys: () => engine().analyze()?.foreign_keys,

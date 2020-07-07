@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "mocha -r ts-node/register tests/units/index.ts"
+    "test": "mocha -r ts-node/register tests/units/regular-use/index.ts --timeout 20000",
+    "test-error": "mocha -r ts-node/register tests/units/error-use/index.ts --timeout 20000"
   },
   "author": "",
   "license": "ISC",
