@@ -8,7 +8,7 @@ export const insertOrUpdate = async (tableName: string, p: Array<Object> | Objec
 
     const rows = !_.isArray(p) ? [p] : p
 
-    return await SQLManager.mysql().transaction((trx) => {
+    return await SQLManager.mysql().transaction((trx: Knex.Transaction) => {
 
         const queries = rows.map((tuple) => {
 
@@ -24,7 +24,7 @@ export const insertOrUpdate = async (tableName: string, p: Array<Object> | Objec
 
 export const createTables = async () => {
 
-    return await SQLManager.mysql().transaction(async (trx) => {
+    return await SQLManager.mysql().transaction(async (trx: Knex.Transaction) => {
 
         const queries = sortTableToCreate().map(async (tName: string) => {
             const isCreated = await SQLManager.isTableCreated(tName)
@@ -38,19 +38,28 @@ export const createTables = async () => {
 }
 
 export const dropAllTables = async () => {
+    try {
+        await SQLManager.mysql().raw(`SET FOREIGN_KEY_CHECKS=0;`)
+        const res = await SQLManager.mysql().transaction(async (trx: Knex.Transaction) => {
 
-    return await SQLManager.mysql().transaction(async (trx) => {
-        const raw1 = [trx.raw('SET foreign_key_checks = 0;').transacting(trx)]
-        const raw2 = [trx.raw('SET foreign_key_checks = 1;').transacting(trx)]
+            const queries = sortTableToCreate().reverse().map(async (tName: string) => {
+                const isCreated = await SQLManager.isTableCreated(tName)
+                if (isCreated)
+                    return Manager.collections().node(tName).sql().table().drop()
+            }) as Knex.Raw<any>[]
 
-        const queries = sortTableToCreate().map(async (tName: string) => {
-            const isCreated = await SQLManager.isTableCreated(tName)
-            if (isCreated)
-                return Manager.collections().node(tName).sql().table().drop()
-        }) as Knex.Raw<any>[]
-
-        return Promise.all(raw1.concat(queries).concat(raw2)).then(trx.commit).catch(trx.rollback)
-    })
+            return Promise.all(queries).then(trx.commit).catch(trx.rollback)
+        })
+        return res
+    } catch (e){
+        if (e.errno === 1217){
+            void(e)
+        } else {
+            console.log(e)
+        }
+    } finally {
+        await SQLManager.mysql().raw(`SET FOREIGN_KEY_CHECKS=1;`)
+    }
 }
 
 export const sortTableToCreate = () => {

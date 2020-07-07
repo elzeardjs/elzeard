@@ -29,18 +29,24 @@ export const populate = async (c: Collection) => {
         }
         values.push(m_keys)
     }
-
     for (let i = 0; i < toFetchKeys.length; i++){
         const {key, key_reference, table_reference } = toFetchKeys[i]        
         const collectionRef = Manager.collections().node(table_reference) as Collection
 
-        const rows = await collectionRef.sql().query().whereIn(key_reference, values.map((value) => value[i]))
+        const currentValues = values.map((value) => value[i])
+        //indexes of the value that are empty
+        const emptyIdx = currentValues.map((v, idx) => v == null || v == undefined ? idx : undefined)
+        const rows = await collectionRef.sql().query().whereIn(key_reference, currentValues.filter((v) => v != null && v != undefined))
 
         const listNested = []
+        let index = 0;
         for (let m of c.state){
+            if (emptyIdx.indexOf(index) != -1)
+                continue;
             const mRef = collectionRef.newNode(_.find(rows, {[key_reference]: m.state[key]}))
             m.state[key] = handleModelGroup(toFetchKeys[i], mRef)
             listNested.push(m.state[key])
+            index++;
         }
         await populate(collectionRef.new(listNested))
     }

@@ -20,14 +20,12 @@ export default class Collection {
     
     private _prevStateStore: any = []
     private _state: any = []
-    private _prevState: any = []
 
     private _option: OptionManager
     private _sql: SQLManager
 
     public get prevStateStore(){ return this._prevStateStore }
     public get state(){ return this._state }
-    public get prevState(){ return this._prevState }
 
     public schema = () => schemaManager(this.newNode(undefined))
     public is = () => IsManager(this)
@@ -37,11 +35,6 @@ export default class Collection {
 
     public fillPrevStateStore = (prevStateStore = this.to().plainUnpopulated()) => {
         this._prevStateStore = prevStateStore
-        return this
-    }
-
-    public fillPrevState = (prevState = this.to().plainUnpopulated()) => {
-        this._prevState = prevState
         return this
     }
 
@@ -62,12 +55,13 @@ export default class Collection {
         const toDelete: any[] = []
         const toUpdate: Model[] = []
 
-        const prevStateStore = this._prevStateStore as Array<any>
+        const prevStateStore = this.prevStateStore as Array<any>
         const currentStateStore = this.to().plainUnpopulated()
 
-        prevStateStore.forEach( (value) => !!value[primary] && !_.find(currentStateStore, {[primary]: value[primary]}) && toDelete.push(value))
-        this.state.forEach( (value: Model) => !_.find(prevStateStore, value.to().plainUnpopulated()) && toUpdate.push(value))
-
+        if (!_.isEqual(prevStateStore, currentStateStore)){
+            prevStateStore.forEach( (value) => !!value[primary] && !_.find(currentStateStore, {[primary]: value[primary]}) && toDelete.push(value))
+            this.state.forEach( (value: Model) => !_.find(prevStateStore, value.to().plainUnpopulated()) && toUpdate.push(value))
+        }
         return { toDelete: this.to().listClass(toDelete), toUpdate: toUpdate }
     }
 
@@ -92,7 +86,7 @@ export default class Collection {
         const m = this.newNode(d).mustValidateSchema()
         try {
             await this.sql().node(m).insert()
-            return m
+            return await m.populate()
         } catch (e){
             throw new Error(e)
         }
@@ -102,7 +96,6 @@ export default class Collection {
     /////////////////////////////////////// LOCAL METHODS BELOW /////////////////////////////////////
 
     public set = (state: any[] = this.state): IAction => {
-        this.fillPrevState()
         this._state = this.to().listClass(state)
         return this.action() 
     }

@@ -3,7 +3,7 @@ import Collection from '../collection'
 
 export default (collection: Collection) => {
     const sql = collection.sql()
-    const queryRunner = async (q: knex.QueryBuilder) => await sql.format().toCollection(await q)
+    const queryRunner = async (q: knex.QueryBuilder) => await sql.format().pull(await q)
     const query = sql.table().query()
 
     const all = async () => await queryRunner(query)

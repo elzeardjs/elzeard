@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import Errors from '../errors'
-import { toPlain, unpopulate, populate } from './utils'
+import { unpopulate, populate } from './utils'
 import {  verifyAllModel } from '../verify'
 import SchemaManager from '../state/schema'
 
@@ -19,15 +19,13 @@ export default class Model {
 
     private _prevStateStore: any = {}
     private _state: any = {}
-    private _prevState: any = {}
+    private _group: string[] = []
 
     private _option: OptionManager
-    private _group: string[] = []
     
     public get group(){ return this._group.slice() }
     public get prevStateStore(){ return this._prevStateStore }
     public get state(){ return this._state }
-    public get prevState(){ return this._prevState }
 
     public schema = () => SchemaManager(this)
     public is = () => IsManager(this)
@@ -49,11 +47,6 @@ export default class Model {
         return this
     }
 
-    public fillPrevState = (prevState = this.to().plainUnpopulated()) => {
-        this._prevState = prevState
-        return this
-    }
-
     constructor(state: any, ...props: any){
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
@@ -68,17 +61,8 @@ export default class Model {
     private _set = (state: any = this.state): IAction => {
         if (!Model._isObject(state))
             throw Errors.onlyObjectOnModelState()
-        this._prevState = this.state
         this._state = state
         return this.action()        
-    }
-
-    private _handleStateChanger = (prevStatePlain: any) => {
-        const newStatePlain = this.to().plainUnpopulated()
-        if (JSON.stringify(prevStatePlain) === JSON.stringify(newStatePlain))
-            return
-        this.fillPrevState(prevStatePlain)
-        verifyAllModel(this)
     }
 
     public copy = (): Model => this.new(this.state).fillPrevStateStore(this.prevStateStore)
@@ -87,12 +71,13 @@ export default class Model {
 
     public saveToDB = async () => {
         if (this.option().isKidsPassed()){
-            const prevStatePlain = this.prevState
+            const prevStatePlain = this.prevStateStore
             const newStatePlain = this.to().plainUnpopulated()
-            if (JSON.stringify(prevStatePlain) != JSON.stringify(newStatePlain)){
+            if (!_.isEqual(prevStatePlain, newStatePlain)){
                 const { error } = this.schema().validate(newStatePlain)
                 if (error) throw new Error(error)
                 await this.sql().node(this).update()
+                this.fillPrevStateStore()
             }
         } else {
             throw new Error("Model need to be bound to a collection to perform save. You can pass `kids` method as option.")
@@ -107,9 +92,8 @@ export default class Model {
         const newState = Object.assign({}, this.state, o)
         try {
             this.mustValidateSchema(newState)
-            const prevStatePlain = this.to().plainUnpopulated()
             this._set(newState)
-            this._handleStateChanger(prevStatePlain)    
+            verifyAllModel(this) 
         } catch (e){
             throw new Error(e)
         }

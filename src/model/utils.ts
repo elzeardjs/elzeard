@@ -114,7 +114,9 @@ export const populate = async (m: Model) => {
     for (let p of populates){
         const { key_reference, table_reference, key } = p
         const collectionRef = Manager.collections().node(table_reference) as Collection
-        const mRef = await collectionRef.sql().fetch().where({[key_reference]: m.state[key] })
-        m.state[key] = handleModelGroup(p, mRef)
+        if (m.state[key] != null && m.state[key] != undefined){
+            const mRef = await collectionRef.sql().fetch().where({[key_reference]: m.state[key] })
+            m.state[key] = handleModelGroup(p, mRef)
+        }
     }
 }

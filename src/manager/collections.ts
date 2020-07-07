@@ -27,6 +27,6 @@ export default class CollectionsManager {
             callback(this.get()[key], key)
     }
 
-    public dropAllTable = async () => await dropAllTables()
-    public createAllTable = async () => await createTables()
+    public dropAllTable = () => dropAllTables()
+    public createAllTable = () => createTables()
 }

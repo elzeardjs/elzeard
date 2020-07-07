@@ -13,10 +13,17 @@ import pullMethods from './pull-methods'
 import tableMethods from './table-methods'
 import updateMethods from './update-methods'
 
+
+let connexion: any = null
+
 export default class SQLManager {
 
     static isTableCreated = async (tableName: string) => await SQLManager.mysql().schema.hasTable(tableName)
-    static mysql = () => knex({ client: 'mysql', connection: config.mysqlConfig() })
+    static mysql = (): knex<any, unknown[]> => {
+        if (!connexion)
+            connexion = knex({ client: 'mysql', connection: config.mysqlConfig() })
+        return connexion
+    }
 
     private _c: Collection
     constructor(c: Collection){
