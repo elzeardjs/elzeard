@@ -20,11 +20,21 @@ export default (m: Model) => {
 
     const getPopulate = () => {
         const { foreign_keys, populate } = engine().analyze()
+        let pops = populate.slice()
+        _.remove(pops, {no_populate: true})
         for (let foreign of foreign_keys){
-            const { key, table_reference, key_reference, group_id} = foreign
-            const collectionRef = Manager.collections().node(table_reference) as Collection
-            if (collectionRef.schema().getPrimaryKey() === key_reference){
-                !_.find(populate, {key}) && populate.push({key, table_reference, key_reference, group_id})
+            const { key, table_reference, key_reference, group_id, no_populate } = foreign
+            if (!no_populate){
+                const collectionRef = Manager.collections().node(table_reference) as Collection
+                if (collectionRef.schema().getPrimaryKey() === key_reference){
+                    !_.find(populate, {key}) && populate.push({
+                        key, 
+                        table_reference, 
+                        key_reference, 
+                        group_id, 
+                        no_populate
+                    })
+                }
             }
         }
         return populate

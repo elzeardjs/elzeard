@@ -17,6 +17,7 @@ export default class Manager {
     public init = async () => {
         if (!this.isInitialized()){
             this.setInitialized()
+            this.collections().verifyCrossedPopulateValues()
             await this.collections().createAllTable()
         }
     }
