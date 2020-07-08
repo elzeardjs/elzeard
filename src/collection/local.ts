@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Collection from './'
+import Manager from '../manager'
 import Model, {IAction} from '../model'
 import { populate as populateCollection } from './utils'
 import to from './to'
@@ -210,6 +211,11 @@ export default class LocalManager {
     public reverse = () => this.c.new(this._state.slice().reverse())
 
     public set = (state: any[] = this.state): IAction => {
+        const tableName = this.c.option().table()
+        const ctxID = this.c.__contextID
+        if (Manager.collections().node(tableName).__contextID === ctxID){
+            throw new Error(`The local state of the global instance of a Collection can't be updated. Use the method ctx() before updating it.`)
+        }        
         if (!Model._isArray(state))
             throw errors.onlyArrayOnCollectionState()
 

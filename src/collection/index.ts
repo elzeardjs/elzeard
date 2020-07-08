@@ -17,11 +17,15 @@ type Constructor<T> = new(...args: any[]) => T;
 //for example in a todolist it would be the parent of the TodoList class containing a list of Todos
 //This can be useful to avoid redundant functions like sorting, filtering, pushing, deleting, updating etc...
 
+let r = 1
 export default class Collection {
     
     private _option: OptionManager
     private _sql: SQLManager
     private _local: LocalManager
+    private _contextID: number
+
+    public get __contextID() { return this._contextID}
 
     public schema = () => SchemaManager(this.newNode(undefined))
     public is = () => IsManager(this)
@@ -31,6 +35,7 @@ export default class Collection {
     public quick = () => QuickManager(this)
 
     constructor(list: any[] = [], models: [Constructor<Model>, Constructor<Collection>], ...props: any){
+        this._contextID = r && r++
         this._local = new LocalManager(this)
         this._option = new OptionManager(this, Object.assign({}, { nodeModel: models[0], nodeCollection: models[1] }, props[0]))
         
@@ -40,8 +45,7 @@ export default class Collection {
             throw errors.tableAlreadyExist(this.option().table())
         
         this._sql = new SQLManager(this)
-        this.local().set(list)
-
+        this.is().kidsPassed() && this.local().set(list)
         !this.is().kidsPassed() && Manager.prepareCollection(this)
     }
 

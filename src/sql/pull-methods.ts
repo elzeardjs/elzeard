@@ -2,6 +2,7 @@ import knex, {QueryBuilder} from 'knex'
 import Collection from '../collection'
 
 export default (collection: Collection) => {
+
     const sql = collection.sql()
     const queryRunner = async (q: knex.QueryBuilder) => await sql.format().pull(await q)
     const query = sql.table().query() as any
