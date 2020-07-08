@@ -9,6 +9,7 @@ import to from './to'
 import IsManager from '../state/is'
 import OptionManager from '../state/option'
 import SQLManager from '../sql'
+import errors from '../errors'
 
 export interface IAction {
     saveToDB(): Promise<any>
@@ -50,10 +51,9 @@ export default class Model {
     constructor(state: any, ...props: any){
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
-        if (!this.option().nodeModel().schema){
-            throw new Error("Every model must contain a schema")
-        }
-
+        if (!this.option().nodeModel().schema)
+            throw errors.noSchema(this)
+        
         this._set(Object.assign({}, this.schema().defaults(), this.schema().cleanNonPresentValues(state)))
         this.is().plainPopulated() && this.populate()
     }
@@ -79,15 +79,14 @@ export default class Model {
                 await this.sql().node(this).update()
                 this.fillPrevStateStore()
             }
-        } else {
-            throw new Error("Model need to be bound to a collection to perform save. You can pass `kids` method as option.")
-        }
+        } else 
+            throw errors.noCollectionBinding(this)
     }
 
     //Only usable in a Model/State
     public setState = (o = this.state): IAction => {
         if (!Model._isObject(o))
-            throw new Error("You can only set an object to setState on a Model")
+            throw errors.onlyObjectOnModelState()
 
         const newState = Object.assign({}, this.state, o)
         try {

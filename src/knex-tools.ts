@@ -1,8 +1,9 @@
+import Model from './model'
 import SQLManager from './sql'
 import _ from 'lodash'
 import { IForeign } from 'joi-to-sql'
 import Manager from './manager'
-import Knex from 'joi-to-sql/node_modules/knex'
+import Knex, { QueryBuilder } from 'joi-to-sql/node_modules/knex'
 
 export const insertOrUpdate = async (tableName: string, p: Array<Object> | Object) => {
 
@@ -100,4 +101,18 @@ export const sortTableToCreate = () => {
         throw new Error(`Table${tablesWithFK.length > 1 ? 's' : ''}: ${tablesWithFK.join(', ')} not created because of crossed foreign keys`)
     
     return tablesToCreate
+}
+
+
+export const areValidWhereArguments = (...args: any) => {
+    if (args.length == 0)
+        return false
+    if (args.length == 1)
+        return typeof args[0] === 'function' || Model._isObject(args[0])
+    if (args.length == 2)
+        return typeof args[0] === 'string'
+    if (args.length == 3){
+        return typeof args[0] === 'string' && typeof args[1] === 'string'
+    }
+    return false
 }

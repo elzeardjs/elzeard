@@ -1,5 +1,7 @@
 import Model from './'
-import { toPlain } from './utils'
+import { toPlain, GROUP_PLAIN_OPTION } from './utils'
+
+
 
 export default (m: Model) => {
     const mRef = m.copy()
@@ -15,7 +17,7 @@ export default (m: Model) => {
     const stringPopulated = async () => JSON.stringify(await plainPopulated())
 
     const filterGroup = (groupName: string | void) => {
-        plainOPT = 'group'
+        plainOPT = GROUP_PLAIN_OPTION
         const groups = mRef.schema().getGroups()
         if (groupName && groups[groupName])
             mRef.fillGroup(groups[groupName])

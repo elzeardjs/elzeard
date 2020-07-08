@@ -3,6 +3,8 @@ import Model from './model'
 import Errors from './errors'
 import Manager from './manager'
 import _ from 'lodash'
+import { IForeign } from 'joi-to-sql'
+import manager from './manager'
 
 
 export const verifyCrossedPopulateValues = (v: Model) => {
@@ -67,6 +69,36 @@ export const verifyGroupingValuesExistence = (c: Collection) => {
                 throw new Error(`A GROUP_ID: '${group_id}' from the table: '${cRef.sql().table().name()}' is referenced in ${origin_table}[${key}]. This GROUP_ID does NOT exist.`)
         }
     }
+}
+
+export const verifyCrossedForeignKey = (c: Collection) => {
+
+    const recur = (elem: IForeign, history: string[], over: string[], tableName: string) => {
+        const { table_reference, key_reference} = elem
+        const hash = table_reference+key_reference
+
+        if (history.indexOf(hash) != -1){
+            throw new Error(`You created 2 crossed foreign keys with cascade action table: ${table_reference}, key: ${key_reference} `)
+        } else if (history.indexOf(hash) == -1){
+            history.push(hash)
+        }
+        if (over.indexOf(hash+tableName) != -1)
+            return
+        else 
+            over.push(hash + tableName)
+
+        const cRef = manager.collections().node(table_reference)
+        for (const f of cRef.schema().getForeignKeys()){
+            recur(f, history, over, cRef.option().table())
+        }
+    }
+
+    for (const f of c.schema().getForeignKeys()){
+        const history: string[] = []
+        const over: string[] = []
+        recur(f, history, over, c.option().table())
+    }
+
 }
 
 export const verifyIfContainArrayOfModel = (v: Model) => {

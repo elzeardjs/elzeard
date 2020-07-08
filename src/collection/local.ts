@@ -3,6 +3,7 @@ import Collection from './'
 import Model, {IAction} from '../model'
 import { populate as populateCollection } from './utils'
 import to from './to'
+import errors from '../errors'
 
 interface ILocalState {
     state: Model[]
@@ -48,8 +49,8 @@ interface ILocalMethods {
 
 export default class LocalManager {
 
-    private _prevStateStore: any = {}
-    private _state: any = {}
+    private _prevStateStore: any = []
+    private _state: any = []
     c: Collection
     
     public get prevStateStore(){ return this._prevStateStore }
@@ -182,17 +183,18 @@ export default class LocalManager {
         return initialAccumulator
     }
 
-    //delete a node if it exists in the list.
-    public remove = (v: any): IAction => {
-        const node = this.c.newNode(v)
-        const primary = this.c.schema().getPrimaryKey()
-        if (!primary){
-            throw new Error("Your node model must have a primary key to perform this action.")
+    //remove a node if it exists in the list, by primary key or predicate object.
+    public remove = (v: Object | string | number): IAction => {
+        if (typeof v === 'string' || typeof v === 'number'){
+            const primary = this.c.schema().getPrimaryKey()
+            if (!primary)
+                throw errors.noPrimaryKey(this.c.option().table())
+            return this.removeBy({[primary]: v})            
         }
-        return this.removeBy({[primary]: node.state[primary]})
+        return this.removeBy(v)
     }
 
-    //delete all the nodes matching the predicate. see https://lodash.com/docs/4.17.15#remove
+    //remove all the nodes matching the predicate. see https://lodash.com/docs/4.17.15#remove
     public removeBy = (predicate: any): IAction => {
         const statePlain = this.to().plain()
         const e = _.remove(statePlain, predicate)
@@ -208,6 +210,9 @@ export default class LocalManager {
     public reverse = () => this.c.new(this._state.slice().reverse())
 
     public set = (state: any[] = this.state): IAction => {
+        if (!Model._isArray(state))
+            throw errors.onlyArrayOnCollectionState()
+
         this._state = this.to().listClass(state)
         return this._action() 
     }

@@ -34,10 +34,13 @@ export const populate = async (c: Collection) => {
         const {key, key_reference, table_reference } = toFetchKeys[i]        
         const collectionRef = Manager.collections().node(table_reference) as Collection
 
-        const currentValues = values.map((value) => value[i])
-        //indexes of the value that are empty
-        const emptyIdx = currentValues.map((v, idx) => v == null || v == undefined ? idx : undefined).filter((v) => v != undefined)
-        const rows = await collectionRef.sql().query().whereIn(key_reference, currentValues.filter((v) => v != null && v != undefined))
+        const allValues = values.map((value) => value[i])
+        //indexes of the value that are empty.
+        const emptyIdx = allValues.map((v, idx) => v == null || v == undefined ? idx : undefined).filter((v) => v != undefined)
+        //non-empty values.
+        const filledValues = allValues.filter((v) => v != null && v != undefined)
+        //rows pulled from the DB
+        const rows = await collectionRef.sql().query().whereIn(key_reference, filledValues)
 
         const listNested = []
         let j = 0;

@@ -6,7 +6,8 @@ import {
     verifyCrossedPopulateValues,
     verifyPopulateExistences,
     verifyForeignKeyExistences,
-    verifyGroupingValuesExistence
+    verifyGroupingValuesExistence,
+    verifyCrossedForeignKey
  } from '../verify'
 
 export default class CollectionsManager {
@@ -35,6 +36,7 @@ export default class CollectionsManager {
 
     public dropAllTable = () => dropAllTables()
     public createAllTable = () => createTables()
+    public verifyCrossedForeignKey = () => this.forEach((c: Collection) => verifyCrossedForeignKey(c))
     public verifyCrossedPopulateValues = () => this.forEach((c: Collection) => verifyCrossedPopulateValues(c.newNode(undefined)))
     public verifyPopulateExistences = () => this.forEach((c: Collection) => verifyPopulateExistences(c))
     public verifyForeignKeyExistences = () => this.forEach((c: Collection) => verifyForeignKeyExistences(c))

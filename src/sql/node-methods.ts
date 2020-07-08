@@ -2,6 +2,7 @@ import Model from '../model'
 import Collection from '../collection'
 import { insertOrUpdate } from '../knex-tools'
 import _ from 'lodash'
+import errors from '../errors'
 
 export default (m: Model, collection: Collection) => {
     const sql = collection.sql()
@@ -25,7 +26,7 @@ export default (m: Model, collection: Collection) => {
 
     const remove = async () => {
         if (!(primary in jsonData))
-            throw new Error("This Model needs to have a primary key to perform a node targeted delete action")
+            throw errors.noPrimaryKey(sql.table().name())
         return await query.where(primary, jsonData[primary]).del()
     }
 

@@ -16,12 +16,17 @@ export default class Manager {
 
     public init = async () => {
         if (!this.isInitialized()){
-            this.setInitialized()
-            this.collections().verifyForeignKeyExistences()
-            this.collections().verifyPopulateExistences()
-            this.collections().verifyGroupingValuesExistence()
-            this.collections().verifyCrossedPopulateValues()
-            await this.collections().createAllTable()
+            try {
+                this.collections().verifyForeignKeyExistences()
+                this.collections().verifyPopulateExistences()
+                this.collections().verifyCrossedForeignKey()
+                this.collections().verifyGroupingValuesExistence()
+                this.collections().verifyCrossedPopulateValues()
+                await this.collections().createAllTable()
+                this.setInitialized()
+            } catch (e){
+                throw new Error(e)
+            }
         }
     }
 
