@@ -44,17 +44,19 @@ export default (c: Collection) => {
 
     const plain = (): any => {
         const ret: any[] = []
-        c.state.forEach((m: Model) => ret.push(queryMiddleWare(m.to()).plain()))
+        c.local().state.forEach((m: Model) => ret.push(queryMiddleWare(m.to()).plain()))
         return ret
     }
 
     const plainPopulated = async () => {
-        if (isUnpopulated || isPlainPopulated)
-            return (await c.copy().populate()).to().plain()
+        if (isUnpopulated || isPlainPopulated){
+            const populated = await c.copy().local().populate()
+            return populated.to().plain()
+        }
         return plain()
     }
 
-    const plainUnpopulated = (): any => isUnpopulated ? plain() : c.copy().unpopulate().to().plain()
+    const plainUnpopulated = (): any => isUnpopulated ? plain() : c.copy().local().unpopulate().to().plain()
 
     const string = (): string => JSON.stringify(plain())
     const stringPopulated = async () => JSON.stringify(await plainPopulated())
@@ -70,8 +72,6 @@ export default (c: Collection) => {
         stringPopulated,
         stringUnpopulated
     }
-
-
 
     return Object.assign({}, { 
         listClass, 

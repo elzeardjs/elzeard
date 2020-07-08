@@ -6,12 +6,12 @@ import { handleModelGroup } from '../model/utils'
 
 export const plainPopulatedToPopulate = (c: Collection) => {
     if (c.is().plainPopulated()){
-        c.state.forEach((elem: Model) => elem.populate())
+        c.local().state.forEach((elem: Model) => elem.populate())
     }
 }
 
 export const populate = async (c: Collection) => {
-    if (c.count() === 0 || c.is().populated() || !c.is().populatable())
+    if (c.local().count() === 0 || c.is().populated() || !c.is().populatable())
         return
     if (c.is().plainPopulated())
         return plainPopulatedToPopulate(c)
@@ -20,8 +20,8 @@ export const populate = async (c: Collection) => {
     const toFetchKeys = []
     const values = []
 
-    for (let i = 0; i < c.count(); i++){
-        const m = c.state[i] as Model
+    for (let i = 0; i < c.local().count(); i++){
+        const m = c.local().state[i] as Model
         const m_keys = []
         for (let p of populates){
             i == 0 && toFetchKeys.push(p)
@@ -41,9 +41,9 @@ export const populate = async (c: Collection) => {
 
         const listNested = []
         let j = 0;
-        while (j < c.count()){
-            const m = c.nodeAt(j)
-            if (emptyIdx.indexOf(j) == -1){
+        while (j < c.local().count()){
+            const m = c.local().nodeAt(j) as Model
+            if (emptyIdx.indexOf(j) == -1 && m.state[key]){
                 const mRef = collectionRef.newNode(_.find(rows, {[key_reference]: m.state[key]}))
                 m.state[key] = handleModelGroup(toFetchKeys[i], mRef)
                 listNested.push(m.state[key])

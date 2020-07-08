@@ -10,7 +10,7 @@ export default (list: Model[], collection: Collection) => {
     const primary = collection.schema().getPrimaryKey()
 
     const jsonData: any[] = list.map((elem) => elem.to().plainUnpopulated())
-    const arrayIDs = collection.new(list).to().arrayPrimary()
+    const arrayIDs = collection.new(list).local().to().arrayPrimary()
     
     const insert = async () => await update()
 

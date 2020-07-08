@@ -7,14 +7,15 @@ export default (dataType: Collection | Model) => {
 
     const isModel = () => dataType instanceof Model
 
-    const empty = (): boolean => _.isEmpty(dataType.state)
+    const empty = (): boolean => _.isEmpty(dataType instanceof Model ? dataType.state : dataType.local().state)
+
     const sqlAccess = (): boolean => !!dataType.sql()
     const kidsPassed = () => dataType.option().isKidsPassed()
     
     const unpopulated = (): boolean => {
-        if (isModel())
+        if (dataType instanceof Model)
             return isUnpopulatedFormat(dataType as Model)
-        for (const m of dataType.state){
+        for (const m of dataType.local().state){
             if (!isUnpopulatedFormat(m))
                 return false
         }
@@ -22,9 +23,9 @@ export default (dataType: Collection | Model) => {
     }
 
     const populated = (): boolean => {
-        if (isModel())
+        if (dataType instanceof Model)
             return isPopulatedFormat(dataType as Model)
-        for (const m of dataType.state){
+        for (const m of dataType.local().state){
             if (!isPopulatedFormat(m))
                 return false
         }
@@ -32,9 +33,9 @@ export default (dataType: Collection | Model) => {
     }
 
     const plainPopulated = (): boolean => {
-        if (isModel())
+        if (dataType instanceof Model)
             return isPlainPopulated(dataType as Model)
-        for (const m of dataType.state){
+        for (const m of dataType.local().state){
             if (!isPlainPopulated(m))
                 return false
         }
@@ -42,9 +43,9 @@ export default (dataType: Collection | Model) => {
     }
 
     const populatable = (): boolean => {
-        if (isModel())
+        if (dataType instanceof Model)
             return isPopulatable(dataType as Model)
-        for (const m of dataType.state){
+        for (const m of dataType.local().state){
             if (!isPopulatable(m))
                 return false
         }
