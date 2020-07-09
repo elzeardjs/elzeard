@@ -15,6 +15,7 @@ export interface IQuick {
     update(data: Object, ...predicate: any): Promise<Number>
     fetch(...primaryOrPredicate: any): Promise<Model | null>
     pull(...v: any): Promise<Collection>
+    test(v: any): Error | void
 }
 
 export default (c: Collection): IQuick => {
@@ -91,12 +92,21 @@ export default (c: Collection): IQuick => {
         return await sql.pull().where(...v)
     }
 
+    const test = (v: any) => {
+        try {
+            c.newNode(undefined).mustValidateSchema(v)
+        } catch (e){
+            return e
+        }
+    }
+
     return {
         create,
         remove,
         count,
         update,
         fetch,
-        pull
+        pull,
+        test
     }
 }

@@ -58,11 +58,11 @@ export default class Model {
         this.is().plainPopulated() && this.populate()
     }
 
-    private _set = (state: any = this.state): IAction => {
+    private _set = (state: any = this.state) => {
         if (!Model._isObject(state))
             throw Errors.onlyObjectOnModelState()
         this._state = state
-        return this.action()        
+        return this        
     }
 
     public copy = (): Model => this.new(this.state).fillPrevStateStore(this.prevStateStore)
@@ -84,7 +84,7 @@ export default class Model {
     }
 
     //Only usable in a Model/State
-    public setState = (o = this.state): IAction => {
+    public setState = (o = this.state) => {
         if (!Model._isObject(o))
             throw errors.onlyObjectOnModelState()
 
@@ -96,7 +96,7 @@ export default class Model {
         } catch (e){
             throw new Error(e)
         }
-        return this.action()
+        return this
     }
 
     public populate = async () => {

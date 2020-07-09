@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Collection from './'
 import Manager from '../manager'
-import Model, {IAction} from '../model'
+import Model from '../model'
 import { populate as populateCollection } from './utils'
 import to from './to'
 import errors from '../errors'
@@ -18,7 +18,7 @@ interface ILocalSQLRelated {
 }
 
 interface ILocalMethods {
-    append(...values: any): IAction
+    append(...values: any): LocalManager
     count(): number
     find(predicate: any): Model | null
     findIndex(predicate: any): number
@@ -32,30 +32,34 @@ interface ILocalMethods {
     nodeAt(index: number): Model | undefined
     offset(offset: number): Collection
     orderBy(iteratees: any[], orders: any[] | void): Collection
-    pop(): IAction
-    prepend(...values: any): IAction
-    push(v: any): IAction
+    pop(): LocalManager
+    prepend(...values: any): LocalManager
+    push(v: any): LocalManager
     reduce(callback: (accumulator: any, currentValue: any) => any, initialAccumulator: any): any
-    remove(v: any): IAction
-    removeBy(predicate: any): IAction
-    removeIndex(index: number): IAction
+    remove(v: any): LocalManager
+    removeBy(predicate: any): LocalManager
+    removeIndex(index: number): LocalManager
     reverse(): Collection
-    set(state: any[]): IAction
-    shift(): IAction
+    set(state: any[]): LocalManager
+    shift(): LocalManager
     slice(): Collection
-    splice(...args: any): IAction
-    updateAt(v: any, index: number): IAction
-    updateWhere(predicate: any, toSet: Object): IAction
+    splice(...args: any): LocalManager
+    updateAt(v: any, index: number): LocalManager
+    updateWhere(predicate: any, toSet: Object): LocalManager
 }
 
 export default class LocalManager {
 
+    private _lastManipulationResult = null
     private _prevStateStore: any = []
     private _state: any = []
     c: Collection
     
     public get prevStateStore(){ return this._prevStateStore }
     public get state(){ return this._state }
+
+    public getLastManipulationResult = () => this._lastManipulationResult
+    public setManipulationResult = (result: any) => this._lastManipulationResult = result
 
     public to = () => to(this.c)
 
@@ -69,10 +73,6 @@ export default class LocalManager {
     }
 
     ////////////  INTERNAL METHODS //////////////
-
-    private _action = (value: any = undefined): IAction => {
-        return { saveToDB: this.saveToDB, value }
-    }
 
     private _changesFromLastSave = () => {
         const primary = this.c.schema().getPrimaryKey()
@@ -159,22 +159,24 @@ export default class LocalManager {
     //return a sorted array upon the parameters passed. see: https://lodash.com/docs/4.17.15#orderBy
     public orderBy = (iteratees: any[] = [], orders: any[] = ['desc']): Collection => this.c.new(_.orderBy(this.to().plain(), iteratees, orders))
 
-    public pop = (): IAction => {
+    public pop = () => {
         const list = this.state.slice()
         const poped = list.pop()
         poped && this.set(list)
-        return this._action(poped)
+        this.setManipulationResult(poped)
+        return this
     }
 
 
     public prepend = (...values: any) => this.set(values.map((value: any) => this.c.newNode(value).mustValidateSchema()).concat(this.state))
 
     //add an element to the list
-    public push = (v: any): IAction => {
+    public push = (v: any) => {
         const list = this.state.slice()
         const n = list.push(this.c.newNode(v).mustValidateSchema())
         n && this.set(list)
-        return this._action(n)
+        this.setManipulationResult(n)
+        return this
     }
 
     public reduce = (callback: (accumulator: any, currentValue: any) => any, initialAccumulator: any = this.count() ? this.nodeAt(0) : null) => {
@@ -185,7 +187,7 @@ export default class LocalManager {
     }
 
     //remove a node if it exists in the list, by primary key or predicate object.
-    public remove = (v: Object | string | number): IAction => {
+    public remove = (v: Object | string | number) => {
         if (typeof v === 'string' || typeof v === 'number'){
             const primary = this.c.schema().getPrimaryKey()
             if (!primary)
@@ -196,21 +198,22 @@ export default class LocalManager {
     }
 
     //remove all the nodes matching the predicate. see https://lodash.com/docs/4.17.15#remove
-    public removeBy = (predicate: any): IAction => {
+    public removeBy = (predicate: any) => {
         const statePlain = this.to().plain()
         const e = _.remove(statePlain, predicate)
         !!e.length && this.set(statePlain)
-        return this._action()
+        return this
     }
 
-    public removeIndex = (index: number): IAction => {
-        const { value } = this.splice(index, 1)
-        return this._action(!!value.length ? value[0] : undefined)
+    public removeIndex = (index: number) => {
+        const value = this.splice(index, 1).getLastManipulationResult() as any
+        this.setManipulationResult(!!value.length ? value[0] : undefined)
+        return this
     }
 
     public reverse = () => this.c.new(this._state.slice().reverse())
 
-    public set = (state: any[] = this.state): IAction => {
+    public set = (state: any[] = this.state) => {
         const tableName = this.c.option().table()
         const ctxID = this.c.__contextID
         if (Manager.collections().node(tableName).__contextID === ctxID){
@@ -220,14 +223,15 @@ export default class LocalManager {
             throw errors.onlyArrayOnCollectionState()
 
         this._state = this.to().listClass(state)
-        return this._action() 
+        return this
     }
 
-    public shift = (): IAction => {
+    public shift = () => {
         const list = this.state.slice()
         const shifted = list.shift()
         shifted && this.set(list)
-        return this._action(shifted)
+        this.setManipulationResult(shifted)
+        return this
     }
 
     public slice = (...indexes: any) => this.c.new(this.state.slice(...indexes))
@@ -241,7 +245,8 @@ export default class LocalManager {
             const list = this.state.slice()
             const value = list.splice(start, ...args)
             this.set(list)
-            return this._action(value)
+            this.setManipulationResult(value)
+            return this
         }
 
         if (typeof start !== 'number')
@@ -267,22 +272,24 @@ export default class LocalManager {
     }
 
     // Update the element at index or post it.
-    public updateAt = (v: any, index: number): IAction => {
+    public updateAt = (v: any, index: number) => {
         const vCopy = this.c.newNode(v).mustValidateSchema()
         const list = this.state.slice()
         if (list[index]){
             list[index] = vCopy
             this.set(list)
-            return this._action(vCopy)
+            this.setManipulationResult(vCopy)
+            return this
         }
         return this.push(vCopy)
     }
 
     // Update the element at index or post it.
-    public updateWhere = (predicate: any, toSet: Object): IAction => {
+    public updateWhere = (predicate: any, toSet: Object) => {
         let count = 0;
         for (let m of this.state)
             _.find([m.to().plainUnpopulated()], predicate) && m.setState(toSet) && count++
-        return this._action(count)
+        this.setManipulationResult(count)
+        return this
     }
 }
