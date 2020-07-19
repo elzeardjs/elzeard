@@ -1,5 +1,5 @@
 {
-  "name": "acey-node",
+  "name": "silvio",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -7,14 +7,15 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "mocha -r ts-node/register tests/units/regular-use/index.ts --timeout 20000",
-    "test-error": "mocha -r ts-node/register tests/units/error-use/index.ts --timeout 20000"
+    "test": "mocha -r ts-node/register tests/units/general/index.ts --timeout 20000",
+    "knex": "knex"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
-    "joi-to-sql": "/Users/louis/projects/joi-mysql",
+    "fs": "^0.0.1-security",
+    "joi-to-sql": "/Users/louis/projects/joi-mysql-2",
     "knex": "^0.21.1",
     "lodash": "^4.14.150",
     "mysql": "^2.18.1"

@@ -3,7 +3,7 @@ import Model from '../model'
 import Collection from '../collection'
 
 export default (collection: Collection) => {
-    const primary = collection.schema().getPrimaryKey()
+    const primary = collection.super().schemaSpecs().getPrimaryKey()
     const sql = collection.sql()
     const query = sql.table().query().first() as any
 

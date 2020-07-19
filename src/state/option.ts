@@ -7,6 +7,7 @@ export interface IOptions {
     nodeModel: Model | null
     nodeCollection: Collection | null
     sql: SQLManager | null
+    autoConnect: boolean
 }
 
 export default class OptionManager { 
@@ -17,7 +18,8 @@ export default class OptionManager {
         table: '',
         nodeModel: null,
         nodeCollection: null,
-        sql: null
+        sql: null,
+        autoConnect: true
     }
 
     constructor(dataType: Collection | Model, option: any){
@@ -35,6 +37,8 @@ export default class OptionManager {
     public nodeModel = (): any => this.get().nodeModel as Model
     public nodeCollection = (): any => this.get().nodeCollection as Collection
     public isKidsPassed = () => this.sql() != null
+    public isAutoConnected = () => this._options.autoConnect
+
     
     public sql = () => this.get().sql
 

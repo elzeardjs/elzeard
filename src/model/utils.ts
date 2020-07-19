@@ -64,12 +64,12 @@ export const doesContainNestedModel = (m: Model) => {
     return false
 }
 
-export const isPopulatable = (m: Model) => m.schema().getPopulate().length > 0
+export const isPopulatable = (m: Model) => m.super().schemaSpecs().getPopulate().length > 0
 
 export const unpopulate = (m: Model) => {
     for (const key in m.state){
         if (m.state[key] instanceof Model){
-            const populateKey = _.find(m.schema().getPopulate(), { key })
+            const populateKey = _.find(m.super().schemaSpecs().getPopulate(), { key })
             if (!populateKey){
                 delete m.state[key]
                 continue;
@@ -83,15 +83,15 @@ export const unpopulate = (m: Model) => {
 export const handleModelGroup = (populate: IPopulate, m: Model | null) => {
     const { group_id } = populate
     if (group_id && m){
-        const groupKeys = m.schema().getGroups()[group_id]
-        groupKeys && m.fillGroup(groupKeys)
+        const groupKeys = m.super().schemaSpecs().getGroups()[group_id]
+        groupKeys && m.super().fillGroup(groupKeys)
     }
     return m
 }
 
 export const plainPopulateToPopulate = (m: Model) => {
-    if (m.is().plainPopulated()){
-        const populates = m.schema().getPopulate()
+    if (m.super().is().plainPopulated()){
+        const populates = m.super().schemaSpecs().getPopulate()
 
         for (let p of populates){
             const { table_reference, key } = p
@@ -105,13 +105,13 @@ export const plainPopulateToPopulate = (m: Model) => {
 }
 
 export const populate = async (m: Model) => {
-    if (!m.option().isKidsPassed())
+    if (!m.super().option().isKidsPassed())
         throw errors.noCollectionBinding(m)
 
-    if (m.is().plainPopulated())
+    if (m.super().is().plainPopulated())
         return plainPopulateToPopulate(m)
 
-    const populates = m.schema().getPopulate()
+    const populates = m.super().schemaSpecs().getPopulate()
 
     for (let p of populates){
         const { key_reference, table_reference, key } = p

@@ -3,14 +3,29 @@ import Model from '../model'
 import _ from 'lodash'
 import { isUnpopulatedFormat, isPopulatable, isPlainPopulated, isPopulatedFormat } from '../model/utils'
 
-export default (dataType: Collection | Model) => {
+export interface IIs {
+    empty(): boolean
+    autoConnected(): boolean
+    sqlAccess(): boolean,
+    kidsPassed(): boolean,
+    unpopulated(): boolean
+    nodeModel(value: any): boolean
+    nodeCollection(value: any): boolean
+    sqlAccess(): boolean
+    unpopulated(): boolean
+    populated(): boolean
+    plainPopulated(): boolean
+    populatable(): boolean
+}
 
-    const isModel = () => dataType instanceof Model
+
+export default (dataType: Collection | Model): IIs => {
 
     const empty = (): boolean => _.isEmpty(dataType instanceof Model ? dataType.state : dataType.local().state)
+    const autoConnected = (): boolean => dataType.super().option().isAutoConnected()
 
     const sqlAccess = (): boolean => !!dataType.sql()
-    const kidsPassed = () => dataType.option().isKidsPassed()
+    const kidsPassed = () => dataType.super().option().isKidsPassed()
     
     const unpopulated = (): boolean => {
         if (dataType instanceof Model)
@@ -52,18 +67,19 @@ export default (dataType: Collection | Model) => {
         return true
     }
 
-    const nodeModel = (value: any) => value instanceof dataType.option().nodeModel()
-    const nodeCollection = (value: any) => value instanceof dataType.option().nodeCollection()
+    const nodeModel = (value: any) => value instanceof dataType.super().option().nodeModel()
+    const nodeCollection = (value: any) => value instanceof dataType.super().option().nodeCollection()
 
     return {
+        autoConnected,
         empty,
-        sqlAccess,
         kidsPassed,
+        nodeCollection,
+        nodeModel,
+        sqlAccess,
         unpopulated,
         populated,
         plainPopulated,
         populatable,
-        nodeModel,
-        nodeCollection
     }
 }

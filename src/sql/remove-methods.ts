@@ -2,7 +2,7 @@ import knex, {QueryBuilder} from 'knex'
 import Collection from '../collection'
 
 export default (collection: Collection) => { 
-    const primary = collection.schema().getPrimaryKey()
+    const primary = collection.super().schemaSpecs().getPrimaryKey()
     const query = collection.sql().table().query().del() as any
 
     const queryRunner = async (q: knex.QueryBuilder): Promise<Number> => await q

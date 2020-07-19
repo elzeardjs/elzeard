@@ -2,9 +2,9 @@ import Collection from './'
 import Model from '../model'
 
 export default (c: Collection) => {
-    const isUnpopulated = c.is().unpopulated()
-    const isPlainPopulated = c.is().plainPopulated()
-    const primary = c.schema().getPrimaryKey()
+    const isUnpopulated = c.super().is().unpopulated()
+    const isPlainPopulated = c.super().is().plainPopulated()
+    const primary = c.super().schemaSpecs().getPrimaryKey()
     
     let isFilterGroup = false
     let filterGroupName: any = undefined

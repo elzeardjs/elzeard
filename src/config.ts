@@ -1,27 +1,29 @@
-import Manager from './manager'
-import { MySqlConnectionConfig } from 'knex'
+import Manager from './manager/'
+import { config, Ecosystem } from 'joi-to-sql'
+import knex, { MySqlConnectionConfig } from 'knex'
 
 class Config {
 
-    private _isDev = true
-    private _logger = false
-    private _mysqlConfig: MySqlConnectionConfig
-    
-    constructor(){
-        this._mysqlConfig = {}
-    }
-
     done = async () => await Manager.init()
 
-    isDevMode = () => this._isDev
-    setAsProduction = () => this._isDev = false
+    constructor(){
+        config.setEcoystem(new Ecosystem())
+    }
 
-    //Todo: logger feature
-    isLoggerEnabled = () => this._logger
-    enableLogger = () => this._logger = true
+    setHistoryDirPath = (historyFolderPath: string) => config.set({historyDir: historyFolderPath})
 
-    mysqlConfig = () => this._mysqlConfig
-    setMySQLConfig = (config: MySqlConnectionConfig) => this._mysqlConfig = config
+    ecosystem = () => config.ecosystem() as Ecosystem
+    mysqlConnexion = () => config.mysqlConnexion() as knex<any, unknown[]>
+    
+    setMySQLConfig = (conf: MySqlConnectionConfig) => config.set({mysqlConfig: conf})
+    setCriticalCode = (code: string) => config.set({criticalCode: code})
+    
+    enableCriticalConfirmation = () => config.enableCriticalConfirmation()
+    disableCriticalConfirmation = () => config.disableCriticalConfirmation()
+
+    enableLog = () => config.enableLog()
+    disableLog = () => config.disableLog()
+
 }
 
 export default new Config()

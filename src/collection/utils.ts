@@ -5,18 +5,18 @@ import Model from "../model"
 import { handleModelGroup } from '../model/utils'
 
 export const plainPopulatedToPopulate = (c: Collection) => {
-    if (c.is().plainPopulated()){
+    if (c.super().is().plainPopulated()){
         c.local().state.forEach((elem: Model) => elem.populate())
     }
 }
 
 export const populate = async (c: Collection) => {
-    if (c.local().count() === 0 || c.is().populated() || !c.is().populatable())
+    if (c.local().count() === 0 || c.super().is().populated() || !c.super().is().populatable())
         return
-    if (c.is().plainPopulated())
+    if (c.super().is().plainPopulated())
         return plainPopulatedToPopulate(c)
 
-    const populates = c.schema().getPopulate()
+    const populates = c.super().schemaSpecs().getPopulate()
     const toFetchKeys = []
     const values = []
 

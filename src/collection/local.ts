@@ -75,7 +75,7 @@ export default class LocalManager {
     ////////////  INTERNAL METHODS //////////////
 
     private _changesFromLastSave = () => {
-        const primary = this.c.schema().getPrimaryKey()
+        const primary = this.c.super().schemaSpecs().getPrimaryKey()
         const toDelete: any[] = []
         const toUpdate: Model[] = []
 
@@ -100,7 +100,7 @@ export default class LocalManager {
     }
 
     public populate = async () => {
-        (this.c.is().unpopulated() || this.c.is().plainPopulated()) && await populateCollection(this.c)
+        (this.c.super().is().unpopulated() || this.c.super().is().plainPopulated()) && await populateCollection(this.c)
         return this
     }
 
@@ -189,9 +189,9 @@ export default class LocalManager {
     //remove a node if it exists in the list, by primary key or predicate object.
     public remove = (v: Object | string | number) => {
         if (typeof v === 'string' || typeof v === 'number'){
-            const primary = this.c.schema().getPrimaryKey()
+            const primary = this.c.super().schemaSpecs().getPrimaryKey()
             if (!primary)
-                throw errors.noPrimaryKey(this.c.option().table())
+                throw errors.noPrimaryKey(this.c.super().option().table())
             return this.removeBy({[primary]: v})            
         }
         return this.removeBy(v)
@@ -214,7 +214,7 @@ export default class LocalManager {
     public reverse = () => this.c.new(this._state.slice().reverse())
 
     public set = (state: any[] = this.state) => {
-        const tableName = this.c.option().table()
+        const tableName = this.c.super().option().table()
         const ctxID = this.c.__contextID
         if (Manager.collections().node(tableName).__contextID === ctxID){
             throw new Error(`The local state of the global instance of a Collection can't be updated. Use the method ctx() before updating it.`)
@@ -262,7 +262,7 @@ export default class LocalManager {
             return internalSplice(start, deleteCount)
 
         for (let i = 0; i < items.length; i++){
-            if (!this.c.is().nodeModel(items[i]) && !Model._isObject(items[i]))
+            if (!this.c.super().is().nodeModel(items[i]) && !Model._isObject(items[i]))
                 throw new Error("items parameter must be an Objet or the same Model than collection's nodes")
             else 
                 items[i] = this.c.newNode(items[i])

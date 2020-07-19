@@ -9,7 +9,7 @@ export default (m: Model, collection: Collection) => {
     const format = sql.format()
     const query = sql.table().query()
     const jsonData: any = m.to().plainUnpopulated()
-    const primary = collection.schema().getPrimaryKey() as string
+    const primary = collection.super().schemaSpecs().getPrimaryKey() as string
     
     const insert = async () => {
         const res = await update()

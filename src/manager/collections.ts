@@ -2,13 +2,7 @@ import Manager from './manager'
 import Collection from '../collection'
 import _ from 'lodash'
 import { createTables, dropAllTables } from '../knex-tools'
-import { 
-    verifyCrossedPopulateValues,
-    verifyPopulateExistences,
-    verifyForeignKeyExistences,
-    verifyGroupingValuesExistence,
-    verifyCrossedForeignKey
- } from '../verify'
+import config from '../config'
 
 export default class CollectionsManager {
 
@@ -26,7 +20,10 @@ export default class CollectionsManager {
     public reset = () => this._collections = {}
     public node = (key: string): Collection => this.get()[key]
 
-    public add = (c: Collection) => this._collections[c.option().table()] = c
+    public add = (c: Collection) => {
+        this._collections[c.super().option().table()] = c
+        config.ecosystem().add({schema: (c.super().option().nodeModel() as any).schema, tableName: c.super().option().table()})
+    }
     public exist = (key: string) => this.get()[key]
 
     public forEach = (callback: (c: Collection, key: string) => any) => {
@@ -36,11 +33,9 @@ export default class CollectionsManager {
 
     public dropAllTable = () => dropAllTables()
     public createAllTable = () => createTables()
-    public verifyCrossedForeignKey = () => this.forEach((c: Collection) => verifyCrossedForeignKey(c))
-    public verifyCrossedPopulateValues = () => this.forEach((c: Collection) => verifyCrossedPopulateValues(c.newNode(undefined)))
-    public verifyPopulateExistences = () => this.forEach((c: Collection) => verifyPopulateExistences(c))
-    public verifyForeignKeyExistences = () => this.forEach((c: Collection) => verifyForeignKeyExistences(c))
-    public verifyGroupingValuesExistence = () => this.forEach((c: Collection) => verifyGroupingValuesExistence(c))
-
-
+    public verifyAll = () => {
+        this.forEach((c: Collection) => {
+            config.ecosystem().verify(c.super().schemaSpecs().ecosystemModel()).all()
+        })
+    }
 }

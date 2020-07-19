@@ -1,13 +1,14 @@
 import _ from 'lodash'
+import { Ecosystem } from 'joi-to-sql'
+
 import Model from '../model'
 import IsManager from '../state/is'
 import OptionManager from '../state/option'
 import SQLManager from '../sql' 
-import SchemaManager from '../state/schema'
 import Manager from '../manager'
 import LocalManager from './local'
 import QuickManager from './quick'
-
+import config from '../config'
 import errors from '../errors'
 
 type Constructor<T> = new(...args: any[]) => T;
@@ -27,9 +28,22 @@ export default class Collection {
 
     public get __contextID() { return this._contextID}
 
-    public schema = () => SchemaManager(this.newNode(undefined))
-    public is = () => IsManager(this)
-    public option = (): OptionManager => this._option
+    public super = () => {
+        const schemaSpecs = () => {
+            const modelSchema = ((option().nodeModel()) as any).schema
+            const ecosystem = (config.ecosystem() as Ecosystem)
+            return ecosystem.schema({schema: modelSchema, tableName: option().table()})
+        }
+        const is = () => IsManager(this)
+        const option = (): OptionManager => this._option 
+
+        return {
+            is,
+            option,
+            schemaSpecs
+        }
+    }
+
     public sql = (): SQLManager => this._sql
     public local = (): LocalManager => this._local
     public quick = () => QuickManager(this)
@@ -39,23 +53,23 @@ export default class Collection {
         this._local = new LocalManager(this)
         this._option = new OptionManager(this, Object.assign({}, { nodeModel: models[0], nodeCollection: models[1] }, props[0]))
         
-        if (!this.option().table())
+        if (!this.super().option().table())
             throw errors.tableRequired()
-        if (!this.is().kidsPassed() && !!Manager.collections().node(this.option().table()))
-            throw errors.tableAlreadyExist(this.option().table())
+        if (!this.super().is().kidsPassed() && !!Manager.collections().node(this.super().option().table()))
+            throw errors.tableAlreadyExist(this.super().option().table())
         
         this._sql = new SQLManager(this)
-        this.is().kidsPassed() && this.local().set(list)
-        !this.is().kidsPassed() && Manager.prepareCollection(this)
+        this.super().is().kidsPassed() && this.local().set(list)
+        this.super().is().autoConnected() && !this.super().is().kidsPassed() && Manager.prepareCollection(this)
     }
 
     public copy = (): Collection => this.new(this.local().to().plain())
 
     public ctx = (): Collection => this.new([])
 
-    public new = (v: any = []): Collection => this.is().nodeCollection(v) ? v : this._newNodeCollectionInstance(v).local().fillPrevStateStore(this.local().prevStateStore)
-    public newNode = (v: any): Model => this.is().nodeModel(v) ? v : this._newNodeModelInstance(v)
+    public new = (v: any = []): Collection => this.super().is().nodeCollection(v) ? v : this._newNodeCollectionInstance(v).local().fillPrevStateStore(this.local().prevStateStore)
+    public newNode = (v: any): Model => this.super().is().nodeModel(v) ? v : this._newNodeModelInstance(v)
 
-    private _newNodeCollectionInstance = (defaultState: any) => new (this.option().nodeCollection())(defaultState, this.option().kids())  
-    private _newNodeModelInstance = (defaultState: any) => new (this.option().nodeModel())(defaultState, this.option().kids())  
+    private _newNodeCollectionInstance = (defaultState: any) => new (this.super().option().nodeCollection())(defaultState, this.super().option().kids())  
+    private _newNodeModelInstance = (defaultState: any) => new (this.super().option().nodeModel())(defaultState, this.super().option().kids())  
 }

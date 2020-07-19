@@ -17,14 +17,11 @@ export default class Manager {
     public init = async () => {
         if (!this.isInitialized()){
             try {
-                this.collections().verifyForeignKeyExistences()
-                this.collections().verifyPopulateExistences()
-                this.collections().verifyCrossedForeignKey()
-                this.collections().verifyGroupingValuesExistence()
-                this.collections().verifyCrossedPopulateValues()
+                this.collections().verifyAll()
                 await this.collections().createAllTable()
                 this.setInitialized()
             } catch (e){
+                console.log(e)
                 throw new Error(e)
             }
         }
@@ -32,7 +29,9 @@ export default class Manager {
 
     public collections = () => this._collectionsManager
  
-    public prepareCollection = (c: Collection) => this.collections().add(c)
+    public prepareCollection = (c: Collection) => {
+        this.collections().add(c)
+    }
 
     public isInitialized = () => this._hasBeenInitialized
     public setInitialized = () => this._hasBeenInitialized = true

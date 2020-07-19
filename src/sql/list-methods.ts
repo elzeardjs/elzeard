@@ -7,7 +7,7 @@ export default (list: Model[], collection: Collection) => {
     const sql = collection.sql()
     const format = sql.format()
     const query = sql.table().query()
-    const primary = collection.schema().getPrimaryKey()
+    const primary = collection.super().schemaSpecs().getPrimaryKey()
 
     const jsonData: any[] = list.map((elem) => elem.to().plainUnpopulated())
     const arrayIDs = collection.new(list).local().to().arrayPrimary()

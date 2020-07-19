@@ -7,7 +7,6 @@ type TPrimary = string | number
 
 const isPrimary = (v: any) => typeof v === 'number' || typeof v === 'string'
 
-
 export interface IQuick {
     create(d: Object): Promise<Model>
     remove(...primaryOrPredicate: any): Promise<Number>
@@ -22,9 +21,9 @@ export default (c: Collection): IQuick => {
     const sql = c.sql()
 
     const _checkPrimary = (v: any) => {
-        const primary = c.schema().getPrimaryKey()
+        const primary = c.super().schemaSpecs().getPrimaryKey()
         if (isPrimary(v) && !primary)
-            throw errors.noPrimaryKey(c.option().table())
+            throw errors.noPrimaryKey(c.super().option().table())
         return isPrimary(v)
     }
 

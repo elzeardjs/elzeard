@@ -1,7 +1,7 @@
 import Model from './model'
 import SQLManager from './sql'
 import _ from 'lodash'
-import { IForeign } from 'joi-to-sql'
+import { IForeign, TableEngine } from 'joi-to-sql'
 import Manager from './manager'
 import Knex, { QueryBuilder } from 'joi-to-sql/node_modules/knex'
 
@@ -30,7 +30,8 @@ export const createTables = async () => {
         const queries = sortTableToCreate().map(async (tName: string) => {
             const isCreated = await SQLManager.isTableCreated(tName)
             if (!isCreated){
-                return Manager.collections().node(tName).schema().engine().table(tName)
+                const ecosystemModel = Manager.collections().node(tName).super().schemaSpecs().ecosystemModel()
+                return TableEngine.buildTable(ecosystemModel.schema, ecosystemModel.tableName)
             }
         })
 
@@ -73,7 +74,7 @@ export const sortTableToCreate = () => {
     for (let key in collections.get()){
         const c = collections.node(key)
         const tName = c.sql().table().name()
-        const foreignKeys = c.schema().getForeignKeys()
+        const foreignKeys = c.super().schemaSpecs().getForeignKeys()
         if (foreignKeys.length == 0 || _.every(foreignKeys, {required: false})) 
             tablesToCreate.push(tName)
         else 
@@ -83,7 +84,7 @@ export const sortTableToCreate = () => {
     let i = 0;
     while (i < tablesWithFK.length){
         const c = collections.node(tablesWithFK[i])
-        const listKeys = toArrayTableRef(c.schema().getForeignKeys())
+        const listKeys = toArrayTableRef(c.super().schemaSpecs().getForeignKeys())
         let count = 0
         for (const key of listKeys)
             tablesToCreate.indexOf(key) != -1 && count++

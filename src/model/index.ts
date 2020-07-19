@@ -3,17 +3,21 @@ import _ from 'lodash'
 import Errors from '../errors'
 import { unpopulate, populate } from './utils'
 import {  verifyAllModel } from '../verify'
-import SchemaManager from '../state/schema'
+import { Ecosystem, ISchema } from 'joi-to-sql'
 
 import to from './to'
-import IsManager from '../state/is'
+import IsManager, {IIs} from '../state/is'
 import OptionManager from '../state/option'
 import SQLManager from '../sql'
 import errors from '../errors'
+import config from '../config'
 
-export interface IAction {
-    saveToDB(): Promise<any>
-    value: any
+export interface ISuper {
+    schemaSpecs(): ISchema
+    is(): IIs
+    option(): OptionManager
+    fillGroup(group: string[]): Model
+    fillPrevStateStore(prevStateStore: any | void): Model
 }
 
 export default class Model {
@@ -28,34 +32,43 @@ export default class Model {
     public get prevStateStore(){ return this._prevStateStore }
     public get state(){ return this._state }
 
-    public schema = () => SchemaManager(this)
-    public is = () => IsManager(this)
-    public option = (): OptionManager => this._option
-    public sql = () => this.option().get().sql as SQLManager
+    public super = (): ISuper => {
+        const schemaSpecs = () => {
+            const modelSchema = (option().nodeModel() as any).schema
+            const ecosystem = (config.ecosystem() as Ecosystem)
+            return ecosystem.schema({schema: modelSchema, tableName: option().table()})
+        }
+    
+        const is = () => IsManager(this)
+        const option = (): OptionManager => this._option
+
+        const fillGroup = (group: string[]) => {
+            this._group = group
+            return this
+        }
+    
+        const fillPrevStateStore = (prevStateStore: any) => {
+            this._prevStateStore = prevStateStore
+            return this
+        }
+
+        return { 
+            schemaSpecs, is, option,
+            fillGroup, fillPrevStateStore
+        }
+    }
+
+    public sql = () => this.super().option().get().sql as SQLManager
     public to = () => to(this)
-
-    public action = (value: any = undefined): IAction => {
-        return { saveToDB: this.saveToDB, value }
-    }
-
-    public fillGroup = (group: string[]) => {
-        this._group = group
-        return this
-    }
-
-    public fillPrevStateStore = (prevStateStore = this.to().plainUnpopulated()) => {
-        this._prevStateStore = prevStateStore
-        return this
-    }
 
     constructor(state: any, ...props: any){
         this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
 
-        if (!this.option().nodeModel().schema)
+        if (!this.super().option().nodeModel().schema)
             throw errors.noSchema(this)
         
-        this._set(Object.assign({}, this.schema().defaults(), this.schema().cleanNonPresentValues(state)))
-        this.is().plainPopulated() && this.populate()
+        this._set(Object.assign({}, this.super().schemaSpecs().defaults(), this.super().schemaSpecs().cleanNonPresentValues(state)))
+        this.super().is().plainPopulated() && this.populate()
     }
 
     private _set = (state: any = this.state) => {
@@ -65,19 +78,19 @@ export default class Model {
         return this        
     }
 
-    public copy = (): Model => this.new(this.state).fillPrevStateStore(this.prevStateStore)
+    public copy = (): Model => this.new(this.state).super().fillPrevStateStore(this.prevStateStore)
 
-    public new = (defaultState: any) => new (this.option().nodeModel())(defaultState, this.option().kids())
+    public new = (defaultState: any) => new (this.super().option().nodeModel())(defaultState, this.super().option().kids())
 
     public saveToDB = async () => {
-        if (this.option().isKidsPassed()){
+        if (this.super().option().isKidsPassed()){
             const prevStatePlain = this.prevStateStore
             const newStatePlain = this.to().plainUnpopulated()
             if (!_.isEqual(prevStatePlain, newStatePlain)){
-                const { error } = this.schema().validate(newStatePlain)
+                const { error } = this.super().schemaSpecs().validate(newStatePlain)
                 if (error) throw new Error(error)
                 await this.sql().node(this).update()
-                this.fillPrevStateStore()
+                this.super().fillPrevStateStore(newStatePlain)
             }
         } else 
             throw errors.noCollectionBinding(this)
@@ -100,7 +113,7 @@ export default class Model {
     }
 
     public populate = async () => {
-        (this.is().unpopulated() || this.is().plainPopulated()) && await populate(this) 
+        (this.super().is().unpopulated() || this.super().is().plainPopulated()) && await populate(this) 
         return this
     }
 
@@ -109,8 +122,8 @@ export default class Model {
         return this
     }
 
-    mustValidateSchema = (state = this.state) => {
-        const { error } = this.schema().validate(this.new(state).to().plainUnpopulated())
+    public mustValidateSchema = (state = this.state) => {
+        const { error } = this.super().schemaSpecs().validate(this.new(state).to().plainUnpopulated())
         if (error) throw new Error(error)
         return this
     }
