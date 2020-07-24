@@ -12,7 +12,9 @@ export default (m: Model, collection: Collection) => {
     const primary = collection.super().schemaSpecs().getPrimaryKey() as string
     
     const insert = async () => {
-        const res = await update()
+        if (_.isEmpty(jsonData))
+            throw new Error(`Object can't be empty.`)
+        const res = await insertOrUpdate(sql.table().name(), jsonData)
         const id = res[0][0].insertId
         m.setState({[primary]: id})
         return id
@@ -21,7 +23,11 @@ export default (m: Model, collection: Collection) => {
     const update = async () => {
         if (_.isEmpty(jsonData))
             throw new Error(`Object can't be empty.`)
-        return await insertOrUpdate(sql.table().name(), jsonData)
+        if (!(primary in jsonData))
+            throw errors.noPrimaryKey(sql.table().name())
+        const idValue = jsonData[primary]
+        delete jsonData[primary]
+        return await query.where(primary, idValue).update(jsonData)
     }
 
     const remove = async () => {

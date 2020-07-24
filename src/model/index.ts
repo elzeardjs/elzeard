@@ -17,22 +17,31 @@ export interface ISuper {
     is(): IIs
     option(): OptionManager
     fillGroup(group: string[]): Model
-    fillPrevStateStore(prevStateStore: any | void): Model
+    fillPrevStateStore(prevStateStore: any | void): Model,
+    prevStateStore: any
+    group: string[]
 }
+
+
+type Constructor<T> = new(...args: any[]) => T;
 
 export default class Model {
 
     private _prevStateStore: any = {}
     private _state: any = {}
     private _group: string[] = []
+    private _isModelDestroyed: boolean = false
 
     private _option: OptionManager
     
-    public get group(){ return this._group.slice() }
-    public get prevStateStore(){ return this._prevStateStore }
-    public get state(){ return this._state }
+    public get state(){ 
+        this._checkIfModelIsDestroyed()
+        return this._state 
+    }
 
     public super = (): ISuper => {
+        this._checkIfModelIsDestroyed()
+
         const schemaSpecs = () => {
             const modelSchema = (option().nodeModel() as any).schema
             const ecosystem = (config.ecosystem() as Ecosystem)
@@ -54,21 +63,35 @@ export default class Model {
 
         return { 
             schemaSpecs, is, option,
-            fillGroup, fillPrevStateStore
+            fillGroup, fillPrevStateStore,
+            prevStateStore: this._prevStateStore,
+            group: this._group.slice()
         }
     }
 
-    public sql = () => this.super().option().get().sql as SQLManager
-    public to = () => to(this)
+    public sql = () => {
+        this._checkIfModelIsDestroyed()
+        return this.super().option().get().sql as SQLManager
+    }
+    
+    public to = () => {
+        this._checkIfModelIsDestroyed()
+        return to(this)
+    }
 
-    constructor(state: any, ...props: any){
-        this._option = new OptionManager(this, Object.assign({}, props[0], props[1]))
+    constructor(state: any, model: Constructor<Model>, ...option: any){
+        this._option = new OptionManager(this, Object.assign({}, ...option, {nodeModel: model}))
 
         if (!this.super().option().nodeModel().schema)
             throw errors.noSchema(this)
         
         this._set(Object.assign({}, this.super().schemaSpecs().defaults(), this.super().schemaSpecs().cleanNonPresentValues(state)))
         this.super().is().plainPopulated() && this.populate()
+    }
+
+    private _checkIfModelIsDestroyed = () => {
+        if (this._isModelDestroyed)
+            throw errors.modelDestroyed(this)
     }
 
     private _set = (state: any = this.state) => {
@@ -78,13 +101,20 @@ export default class Model {
         return this        
     }
 
-    public copy = (): Model => this.new(this.state).super().fillPrevStateStore(this.prevStateStore)
+    public copy = (): Model => {
+        this._checkIfModelIsDestroyed()
+        return this.new(this.state).super().fillPrevStateStore(this.super().prevStateStore)
+    }
 
-    public new = (defaultState: any) => new (this.super().option().nodeModel())(defaultState, this.super().option().kids())
+    public new = (defaultState: any) => {
+        this._checkIfModelIsDestroyed()
+        return new (this.super().option().nodeModel())(defaultState, this.super().option().kids())
+    }
 
     public saveToDB = async () => {
+        this._checkIfModelIsDestroyed()
         if (this.super().option().isKidsPassed()){
-            const prevStatePlain = this.prevStateStore
+            const prevStatePlain = this.super().prevStateStore
             const newStatePlain = this.to().plainUnpopulated()
             if (!_.isEqual(prevStatePlain, newStatePlain)){
                 const { error } = this.super().schemaSpecs().validate(newStatePlain)
@@ -96,8 +126,19 @@ export default class Model {
             throw errors.noCollectionBinding(this)
     }
 
+    public destroy = async () => {
+        this._checkIfModelIsDestroyed()
+        try {
+            await this.sql().node(this).delete()
+            this._isModelDestroyed = true
+        } catch (e){
+            throw new Error(e)
+        }
+    }
+
     //Only usable in a Model/State
     public setState = (o = this.state) => {
+        this._checkIfModelIsDestroyed()
         if (!Model._isObject(o))
             throw errors.onlyObjectOnModelState()
 
@@ -113,20 +154,25 @@ export default class Model {
     }
 
     public populate = async () => {
-        (this.super().is().unpopulated() || this.super().is().plainPopulated()) && await populate(this) 
+        this._checkIfModelIsDestroyed()
+        if (this.super().is().unpopulated() || this.super().is().plainPopulated()) 
+            await populate(this) 
         return this
     }
 
     public unpopulate = () => {
+        this._checkIfModelIsDestroyed()
         unpopulate(this)
         return this
     }
 
     public mustValidateSchema = (state = this.state) => {
+        this._checkIfModelIsDestroyed()
         const { error } = this.super().schemaSpecs().validate(this.new(state).to().plainUnpopulated())
         if (error) throw new Error(error)
         return this
     }
+
 
     static _isArray = (value: any): boolean => Array.isArray(value)
     static _isObject = (value: any): boolean => value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Model) && !(value instanceof Date)

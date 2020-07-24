@@ -11,7 +11,8 @@ export default {
     noSchema: (m: Model) => new Error(`Model ${m.constructor.name} does NOT contain a schema.`),
     forbiddenArrayModel: (m: Model) => new Error(`${m.constructor.name}'s state contains an Array of Model. Please use a Collection instead.`),
 
-    noCollectionBinding: (m: Model) => new Error(`You need to bind Model ${m.constructor.name} to a parent Collection to perform this action. -> You should set the the option 'kids' in the Model option at instanciation. Example: new Model({...someState}, parentCollection.option().kids())`)
+    noCollectionBinding: (m: Model) => new Error(`You need to bind Model ${m.constructor.name} to a parent Collection to perform this action. -> You should set the the option 'kids' in the Model option at instanciation. Example: new Model({...someState}, parentCollection.option().kids())`),
+    modelDestroyed: (m: Model) => new Error(`Model ${m.constructor.name} has been destroyed and is not anymore usable`)
 }
 
 

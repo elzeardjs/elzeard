@@ -2,6 +2,7 @@ import Manager from './manager'
 import Collection from '../collection'
 import _ from 'lodash'
 import { createTables, dropAllTables } from '../knex-tools'
+import { MigrationManager } from 'joi-to-sql'
 import config from '../config'
 
 export default class CollectionsManager {
@@ -32,7 +33,20 @@ export default class CollectionsManager {
     }
 
     public dropAllTable = () => dropAllTables()
-    public createAllTable = () => createTables()
+    public createAllTable = () => {
+        try {
+            createTables()
+            this.forEach((c: Collection) => {
+                if (MigrationManager.schema().lastFilename(c.super().option().table()) === null){
+                    const ecoModel = c.super().schemaSpecs().ecosystemModel()
+                    MigrationManager.schema().create(ecoModel)
+                }
+            })
+
+        } catch (e){
+            throw new Error(e)
+        }
+    }
     public verifyAll = () => {
         this.forEach((c: Collection) => {
             config.ecosystem().verify(c.super().schemaSpecs().ecosystemModel()).all()

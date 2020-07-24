@@ -32,7 +32,7 @@ export const toPlain = (m: Model, opt: string | void): any => {
 
         //if this is a Model class
         if (o instanceof Model){
-            recur(o.state, path, opt === GROUP_PLAIN_OPTION ? o.group : [])
+            recur(o.state, path, opt === GROUP_PLAIN_OPTION ? o.super().group : [])
             return
         }
 
