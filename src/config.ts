@@ -4,6 +4,7 @@ import knex, { MySqlConnectionConfig } from 'knex'
 
 class Config {
 
+    private _isLogEnabled = true
     done = async () => await Manager.init()
 
     constructor(){
@@ -21,9 +22,15 @@ class Config {
     enableCriticalConfirmation = () => config.enableCriticalConfirmation()
     disableCriticalConfirmation = () => config.disableCriticalConfirmation()
 
-    enableLog = () => config.enableLog()
-    disableLog = () => config.disableLog()
-
+    isLogEnabled = () => this._isLogEnabled
+    enableLog = () => {
+        this._isLogEnabled = true
+        config.enableLog()
+    }
+    disableLog = () => {
+        this._isLogEnabled = false
+        config.disableLog()
+    }
 }
 
 export default new Config()
