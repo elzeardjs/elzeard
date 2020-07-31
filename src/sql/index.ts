@@ -17,6 +17,7 @@ export default class SQLManager {
 
     static isTableCreated = async (tableName: string) => await SQLManager.mysql().schema.hasTable(tableName)
     static mysql = (): knex<any, unknown[]> => config.mysqlConnexion()
+    public knex = (): knex<any, unknown[]> => config.mysqlConnexion()
 
     private _c: Collection
     constructor(c: Collection){

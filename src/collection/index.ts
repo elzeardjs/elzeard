@@ -8,8 +8,10 @@ import SQLManager from '../sql'
 import Manager from '../manager'
 import LocalManager from './local'
 import QuickManager from './quick'
+import ExpressTools from './express'
 import config from '../config'
 import errors from '../errors'
+
 
 type Constructor<T> = new(...args: any[]) => T;
 
@@ -47,6 +49,7 @@ export default class Collection {
     public sql = (): SQLManager => this._sql
     public local = (): LocalManager => this._local
     public quick = () => QuickManager(this)
+    public expressTools = () => ExpressTools(this)
 
     constructor(list: any[] = [], models: [Constructor<Model>, Constructor<Collection>], ...props: any){
         this._contextID = r && r++
