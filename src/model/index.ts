@@ -176,7 +176,6 @@ export default class Model {
             s[key] === null && !defaults[key] && delete stateCopy[key]
 
         const { error } = this.super().schemaSpecs().validate(stateCopy)
-        console.log(error, stateCopy)
         if (error) throw new Error(error)
         return this
     }

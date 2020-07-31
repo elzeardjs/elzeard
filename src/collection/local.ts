@@ -92,19 +92,19 @@ export default class LocalManager {
 
     /*          SQL RELATED METHODS            */
 
-    public saveToDB = async () => {
+    public saveToDB = async (): Promise<void> => {
         const { toDelete, toUpdate } = this._changesFromLastSave()
         toDelete.length && await this.c.sql().list(toDelete).remove()
         toUpdate.length && await this.c.sql().list(toUpdate).update()
         this.fillPrevStateStore()
     }
 
-    public populate = async () => {
+    public populate = async (): Promise<this> => {
         (this.c.super().is().unpopulated() || this.c.super().is().plainPopulated()) && await populateCollection(this.c)
         return this
     }
 
-    public unpopulate = () => {
+    public unpopulate = (): this => {
         this.state.forEach((m: Model) => m.unpopulate())
         return this
     }
@@ -113,12 +113,12 @@ export default class LocalManager {
 
     /*     PURE LOCAL STATE INTERACTION METHODS         */
 
-    public append = (...values: any) => this.set(this.state.concat(values.map((value: any) => this.c.newNode(value).mustValidateSchema())))
+    public append = (...values: any): this => this.set(this.state.concat(values.map((value: any) => this.c.newNode(value).mustValidateSchema())))
     //Return the number of element in the array
     public count = (): number => this.state.length
 
     //find the first node matching the predicate see: https://lodash.com/docs/4.17.15#find
-    public find = (predicate: any) => {
+    public find = (predicate: any): Model | null => {
         const o = _.find(this.to().plain(), predicate)
         if (o){
             const index = this.findIndex(o)
@@ -132,7 +132,7 @@ export default class LocalManager {
 
 
     //pick up a list of node matching the predicate. see: https://lodash.com/docs/4.17.15#filter
-    public filter = (predicate: any) => this.c.new( _.filter(this.to().plain(), predicate))
+    public filter = (predicate: any): Collection => this.c.new( _.filter(this.to().plain(), predicate))
 
     public first = (): Model | null => this.count() == 0 ? null : this.nodeAt(0)
 
@@ -141,11 +141,11 @@ export default class LocalManager {
 
     public last = (): Model | null => this.count() == 0 ? null : this.nodeAt(this.count() - 1)
 
-    public limit = (limit: number) => this.slice(0, limit)
+    public limit = (limit: number): Collection => this.slice(0, limit)
 
-    public map = (callback: (v: any, index: number) => any) => { 
+    public map = (callback: (v: any, index: number) => any): any[] => { 
         const array = this.state
-        let ret = []
+        let ret: any[] = []
         for (let i = 0; i < array.length; i++){
             const v = callback(array[i], i)
             v && ret.push(v)
@@ -153,8 +153,8 @@ export default class LocalManager {
         return ret
     }
 
-    public nodeAt = (index: number) => this.state[index]
-    public offset = (offset: number) => this.slice(offset)
+    public nodeAt = (index: number): Model | null => this.state[index] ? this.state[index] : null
+    public offset = (offset: number): Collection => this.slice(offset)
 
     //return a sorted array upon the parameters passed. see: https://lodash.com/docs/4.17.15#orderBy
     public orderBy = (iteratees: any[] = [], orders: any[] = ['desc']): Collection => this.c.new(_.orderBy(this.to().plain(), iteratees, orders))
@@ -168,10 +168,10 @@ export default class LocalManager {
     }
 
 
-    public prepend = (...values: any) => this.set(values.map((value: any) => this.c.newNode(value).mustValidateSchema()).concat(this.state))
+    public prepend = (...values: any): this => this.set(values.map((value: any) => this.c.newNode(value).mustValidateSchema()).concat(this.state))
 
     //add an element to the list
-    public push = (v: any) => {
+    public push = (v: any): this => {
         const list = this.state.slice()
         const n = list.push(this.c.newNode(v).mustValidateSchema())
         n && this.set(list)
@@ -187,7 +187,7 @@ export default class LocalManager {
     }
 
     //remove a node if it exists in the list, by primary key or predicate object.
-    public remove = (v: Object | string | number) => {
+    public remove = (v: Object | string | number): this => {
         if (typeof v === 'string' || typeof v === 'number'){
             const primary = this.c.super().schemaSpecs().getPrimaryKey()
             if (!primary)
@@ -198,22 +198,22 @@ export default class LocalManager {
     }
 
     //remove all the nodes matching the predicate. see https://lodash.com/docs/4.17.15#remove
-    public removeBy = (predicate: any) => {
+    public removeBy = (predicate: any): this => {
         const statePlain = this.to().plain()
         const e = _.remove(statePlain, predicate)
         !!e.length && this.set(statePlain)
         return this
     }
 
-    public removeIndex = (index: number) => {
+    public removeIndex = (index: number): this => {
         const value = this.splice(index, 1).getLastManipulationResult() as any
         this.setManipulationResult(!!value.length ? value[0] : undefined)
         return this
     }
 
-    public reverse = () => this.c.new(this._state.slice().reverse())
+    public reverse = (): Collection => this.c.new(this._state.slice().reverse())
 
-    public set = (state: any[] = this.state) => {
+    public set = (state: any[] = this.state): this => {
         const tableName = this.c.super().option().table()
         const ctxID = this.c.__contextID
         if (Manager.collections().node(tableName).__contextID === ctxID){
@@ -226,7 +226,7 @@ export default class LocalManager {
         return this
     }
 
-    public shift = () => {
+    public shift = (): this => {
         const list = this.state.slice()
         const shifted = list.shift()
         shifted && this.set(list)
@@ -234,9 +234,9 @@ export default class LocalManager {
         return this
     }
 
-    public slice = (...indexes: any) => this.c.new(this.state.slice(...indexes))
+    public slice = (...indexes: any): Collection => this.c.new(this.state.slice(...indexes))
 
-    public splice = (...args: any) => {
+    public splice = (...args: any): this => {
         const start = args[0]
         const deleteCount = args[1]
         const items = args.slice(2, args.length)
@@ -272,7 +272,7 @@ export default class LocalManager {
     }
 
     // Update the element at index or post it.
-    public updateAt = (v: any, index: number) => {
+    public updateAt = (v: any, index: number): this => {
         const vCopy = this.c.newNode(v).mustValidateSchema()
         const list = this.state.slice()
         if (list[index]){
@@ -285,7 +285,7 @@ export default class LocalManager {
     }
 
     // Update the element at index or post it.
-    public updateWhere = (predicate: any, toSet: Object) => {
+    public updateWhere = (predicate: any, toSet: Object): this => {
         let count = 0;
         for (let m of this.state)
             _.find([m.to().plainUnpopulated()], predicate) && m.setState(toSet) && count++
