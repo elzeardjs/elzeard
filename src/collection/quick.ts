@@ -83,12 +83,12 @@ export default (c: Collection): IQuick => {
 
     const pull = async (...v: any) => {
         if (v.length === 0)
-            return await sql.pull().all()
+            return await c.ctx().sql().pull().all()
 
         if (!areValidWhereArguments(...v))
             throw new Error("arguments are not valid.")  
         
-        return await sql.pull().where(...v)
+        return await c.ctx().sql().pull().where(...v)
     }
 
     const test = (v: any) => {

@@ -8,7 +8,7 @@ class Config {
     done = async () => await Manager.init()
 
     constructor(){
-        config.setEcoystem(new Ecosystem())
+        config.setEcosystem(new Ecosystem())
     }
 
     setHistoryDirPath = (historyFolderPath: string) => config.set({historyDir: historyFolderPath})
@@ -21,6 +21,10 @@ class Config {
     
     enableCriticalConfirmation = () => config.enableCriticalConfirmation()
     disableCriticalConfirmation = () => config.disableCriticalConfirmation()
+
+    isRemovingMigrationOnErrorEnabled = () => config.isRemovingMigrationOnErrorEnabled()
+    enableMigrationRemovingOnError = () => config.enableMigrationRemovingOnError()
+    disableMigrationRemovingOnError = () => config.disableMigrationRemovingOnError()
 
     isLogEnabled = () => this._isLogEnabled
     enableLog = () => {

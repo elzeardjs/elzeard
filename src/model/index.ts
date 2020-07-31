@@ -117,8 +117,7 @@ export default class Model {
             const prevStatePlain = this.super().prevStateStore
             const newStatePlain = this.to().plainUnpopulated()
             if (!_.isEqual(prevStatePlain, newStatePlain)){
-                const { error } = this.super().schemaSpecs().validate(newStatePlain)
-                if (error) throw new Error(error)
+                this.mustValidateSchema(newStatePlain)
                 await this.sql().node(this).update()
                 this.super().fillPrevStateStore(newStatePlain)
             }
@@ -168,7 +167,16 @@ export default class Model {
 
     public mustValidateSchema = (state = this.state) => {
         this._checkIfModelIsDestroyed()
-        const { error } = this.super().schemaSpecs().validate(this.new(state).to().plainUnpopulated())
+
+        const s = this.new(state).to().plainUnpopulated()
+        const defaults = this.super().schemaSpecs().defaults()
+        const stateCopy = _.clone(s)
+
+        for (let key in s)
+            s[key] === null && !defaults[key] && delete stateCopy[key]
+
+        const { error } = this.super().schemaSpecs().validate(stateCopy)
+        console.log(error, stateCopy)
         if (error) throw new Error(error)
         return this
     }

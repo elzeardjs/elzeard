@@ -1,5 +1,7 @@
+import config from '../config'
 import Collection from "../collection"
 import CollectionsManager from './collections'
+import { TableEngine, MigrationManager } from "joi-to-sql"
 
 export default class Manager {
     
@@ -18,7 +20,8 @@ export default class Manager {
         if (!this.isInitialized()){
             try {
                 this.collections().verifyAll()
-                await this.collections().createAllTable()
+                await TableEngine.buildAllFromEcosystem()
+                await MigrationManager.smartMigration()
                 this.setInitialized()
             } catch (e){
                 console.log(e)
