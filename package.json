@@ -1,6 +1,6 @@
 {
   "name": "elzeard",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/arysociety/elzeard#readme",
   "dependencies": {
-    "joixsql": "^1.0.6",
+    "joixsql": "^1.0.7",
     "knex": "^0.21.1",
     "lodash": "^4.14.150"
   },
