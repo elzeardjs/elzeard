@@ -1,6 +1,6 @@
 {
   "name": "elzeard",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,7 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
+    "build": "rm -rf dist && tsc",
     "clean": "rm -rf dist",
     "test": "mocha -r ts-node/register tests/units/general/index.ts --timeout 20000"
   },
@@ -23,13 +23,12 @@
   },
   "homepage": "https://github.com/arysociety/elzeard#readme",
   "dependencies": {
-    "joixsql": "^1.0.7",
+    "joixsql": "^1.0.9",
     "knex": "^0.21.1",
     "lodash": "^4.14.150"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
-    "@types/hapi__joi": "^17.1.2",
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.150",
     "@types/mocha": "^7.0.2",
