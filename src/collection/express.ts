@@ -10,7 +10,6 @@ export type TObjectStringAny = { [char: string]: string | number | null | Date }
 /* CHECK UTIL METHODS */
 
 const checks = (c: Collection) => {
-
     /* 
         This function check and return an error if one of the data
         is a column with a UNIQUE constraint in the DB and

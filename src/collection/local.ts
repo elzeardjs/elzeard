@@ -6,32 +6,21 @@ import { populate as populateCollection } from './utils'
 import to from './to'
 import errors from '../errors'
 
-interface ILocalState {
-    state: Model[]
-    prevStateStore: any[]
-}
-
-interface ILocalSQLRelated {
-    saveToDB(): void,
-    populate(): Promise<Collection>
-    unpopulate(): Collection
-}
-
 interface ILocalMethods {
     append(...values: any): LocalManager
     count(): number
     find(predicate: any): Model | null
     findIndex(predicate: any): number
-    fillPrevStateStore(prevStateStore: any[] | void): Collection
-    filter(predicate: any): Collection
+    fillPrevStateStore(prevStateStore: any[] | void): LocalManager
+    filter(predicate: any): LocalManager
     first(): Model | null
     indexOf(v: any): number
     last(): Model | null
-    limit(limit: number): Collection
+    limit(limit: number): LocalManager
     map(callback: (v: any, index: number) => any): any[]
     nodeAt(index: number): Model | undefined
-    offset(offset: number): Collection
-    orderBy(iteratees: any[], orders: any[] | void): Collection
+    offset(offset: number): LocalManager
+    orderBy(iteratees: any[], orders: any[] | void): LocalManager
     pop(): LocalManager
     prepend(...values: any): LocalManager
     push(v: any): LocalManager
@@ -39,10 +28,10 @@ interface ILocalMethods {
     remove(v: any): LocalManager
     removeBy(predicate: any): LocalManager
     removeIndex(index: number): LocalManager
-    reverse(): Collection
+    reverse(): LocalManager
     set(state: any[]): LocalManager
     shift(): LocalManager
-    slice(): Collection
+    slice(): LocalManager
     splice(...args: any): LocalManager
     updateAt(v: any, index: number): LocalManager
     updateWhere(predicate: any, toSet: Object): LocalManager
@@ -92,11 +81,12 @@ export default class LocalManager {
 
     /*          SQL RELATED METHODS            */
 
-    public saveToDB = async (): Promise<void> => {
+    public saveToDB = async (): Promise<this> => {
         const { toDelete, toUpdate } = this._changesFromLastSave()
         toDelete.length && await this.c.sql().list(toDelete).remove()
         toUpdate.length && await this.c.sql().list(toUpdate).update()
         this.fillPrevStateStore()
+        return this
     }
 
     public populate = async (): Promise<this> => {
@@ -108,7 +98,6 @@ export default class LocalManager {
         this.state.forEach((m: Model) => m.unpopulate())
         return this
     }
-
 
 
     /*     PURE LOCAL STATE INTERACTION METHODS         */
@@ -132,7 +121,7 @@ export default class LocalManager {
 
 
     //pick up a list of node matching the predicate. see: https://lodash.com/docs/4.17.15#filter
-    public filter = (predicate: any): Collection => this.c.new( _.filter(this.to().plain(), predicate))
+    public filter = (predicate: any): LocalManager => this.c.new( _.filter(this.to().plain(), predicate)).local()
 
     public first = (): Model | null => this.count() == 0 ? null : this.nodeAt(0)
 
@@ -141,7 +130,7 @@ export default class LocalManager {
 
     public last = (): Model | null => this.count() == 0 ? null : this.nodeAt(this.count() - 1)
 
-    public limit = (limit: number): Collection => this.slice(0, limit)
+    public limit = (limit: number): LocalManager => this.slice(0, limit)
 
     public map = (callback: (v: any, index: number) => any): any[] => { 
         const array = this.state
@@ -154,10 +143,10 @@ export default class LocalManager {
     }
 
     public nodeAt = (index: number): Model | null => this.state[index] ? this.state[index] : null
-    public offset = (offset: number): Collection => this.slice(offset)
+    public offset = (offset: number): LocalManager => this.slice(offset)
 
     //return a sorted array upon the parameters passed. see: https://lodash.com/docs/4.17.15#orderBy
-    public orderBy = (iteratees: any[] = [], orders: any[] = ['desc']): Collection => this.c.new(_.orderBy(this.to().plain(), iteratees, orders))
+    public orderBy = (iteratees: any[] = [], orders: any[] = ['desc']): LocalManager => this.c.new(_.orderBy(this.to().plain(), iteratees, orders)).local()
 
     public pop = () => {
         const list = this.state.slice()
@@ -211,7 +200,7 @@ export default class LocalManager {
         return this
     }
 
-    public reverse = (): Collection => this.c.new(this._state.slice().reverse())
+    public reverse = (): LocalManager => this.c.new(this._state.slice().reverse()).local()
 
     public set = (state: any[] = this.state): this => {
         const tableName = this.c.super().option().table()
@@ -234,7 +223,7 @@ export default class LocalManager {
         return this
     }
 
-    public slice = (...indexes: any): Collection => this.c.new(this.state.slice(...indexes))
+    public slice = (...indexes: any): LocalManager => this.c.new(this.state.slice(...indexes)).local()
 
     public splice = (...args: any): this => {
         const start = args[0]
