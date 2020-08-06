@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import set from 'lodash/set'
+import find from 'lodash/find'
 import { IPopulate } from 'joixsql'
 import Collection from '../collection'
 import Model from './'
@@ -36,7 +37,7 @@ export const toPlain = (m: Model, opt: string | void): any => {
             return
         }
 
-        _.set(ret, path, o)
+        set(ret, path, o)
     }
 
     recur(m.state, '')
@@ -69,7 +70,7 @@ export const isPopulatable = (m: Model) => m.super().schemaSpecs().getPopulate()
 export const unpopulate = (m: Model) => {
     for (const key in m.state){
         if (m.state[key] instanceof Model){
-            const populateKey = _.find(m.super().schemaSpecs().getPopulate(), { key })
+            const populateKey = find(m.super().schemaSpecs().getPopulate(), { key })
             if (!populateKey){
                 delete m.state[key]
                 continue;

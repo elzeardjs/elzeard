@@ -1,6 +1,6 @@
 import Collection from '../collection'
 import Model from '../model'
-import _ from 'lodash'
+import isEmpty from 'lodash/isEmpty'
 import { isUnpopulatedFormat, isPopulatable, isPlainPopulated, isPopulatedFormat } from '../model/utils'
 
 export interface IIs {
@@ -21,7 +21,7 @@ export interface IIs {
 
 export default (dataType: Collection | Model): IIs => {
 
-    const empty = (): boolean => _.isEmpty(dataType instanceof Model ? dataType.state : dataType.local().state)
+    const empty = (): boolean => isEmpty(dataType instanceof Model ? dataType.state : dataType.local().state)
     const autoConnected = (): boolean => dataType.super().option().isAutoConnected()
 
     const sqlAccess = (): boolean => !!dataType.sql()

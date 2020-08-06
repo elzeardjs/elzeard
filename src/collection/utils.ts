@@ -1,5 +1,5 @@
 import Manager from '../manager'
-import _ from 'lodash'
+import find from 'lodash/find'
 import Collection from "./"
 import Model from "../model"
 import { handleModelGroup } from '../model/utils'
@@ -47,7 +47,7 @@ export const populate = async (c: Collection) => {
         while (j < c.local().count()){
             const m = c.local().nodeAt(j) as Model
             if (emptyIdx.indexOf(j) == -1 && m.state[key]){
-                const mRef = collectionRef.newNode(_.find(rows, {[key_reference]: m.state[key]}))
+                const mRef = collectionRef.newNode(find(rows, {[key_reference]: m.state[key]}))
                 m.state[key] = handleModelGroup(toFetchKeys[i], mRef)
                 listNested.push(m.state[key])
             }

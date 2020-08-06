@@ -1,7 +1,7 @@
 import Model from '../model'
 import Collection from '../collection'
 import { insertOrUpdate } from '../knex-tools'
-import _ from 'lodash'
+import isEmpty from 'lodash/isEmpty'
 
 export default (list: Model[], collection: Collection) => {
     const sql = collection.sql()
@@ -15,7 +15,7 @@ export default (list: Model[], collection: Collection) => {
     const insert = async () => await update()
 
     const update = async () => {
-        if (_.isEmpty(jsonData))
+        if (isEmpty(jsonData))
             throw new Error(`List can't be empty.`)
         const res = await insertOrUpdate(sql.table().name(), jsonData)
 

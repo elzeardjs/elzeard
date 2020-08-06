@@ -1,7 +1,7 @@
 import Model from '../model'
 import Collection from '../collection'
 import { insertOrUpdate } from '../knex-tools'
-import _ from 'lodash'
+import isEmpty from 'lodash/isEmpty'
 import errors from '../errors'
 
 export default (m: Model, collection: Collection) => {
@@ -12,7 +12,7 @@ export default (m: Model, collection: Collection) => {
     const primary = collection.super().schemaSpecs().getPrimaryKey() as string
     
     const insert = async () => {
-        if (_.isEmpty(jsonData))
+        if (isEmpty(jsonData))
             throw new Error(`Object can't be empty.`)
         const res = await insertOrUpdate(sql.table().name(), jsonData)
         const id = res[0][0].insertId
@@ -21,7 +21,7 @@ export default (m: Model, collection: Collection) => {
     }
 
     const update = async () => {
-        if (_.isEmpty(jsonData))
+        if (isEmpty(jsonData))
             throw new Error(`Object can't be empty.`)
         if (!(primary in jsonData))
             throw errors.noPrimaryKey(sql.table().name())

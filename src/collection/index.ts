@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { Ecosystem } from 'joixsql'
 
 import Model from '../model'

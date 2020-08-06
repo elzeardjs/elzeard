@@ -1,4 +1,10 @@
-import _ from 'lodash'
+import find from 'lodash/find'
+import filter from 'lodash/filter'
+import findIndex from 'lodash/findIndex'
+import isEqual from 'lodash/isEqual'
+import orderBy from 'lodash/orderBy'
+import remove from 'lodash/remove'
+
 import Collection from './'
 import Manager from '../manager'
 import Model from '../model'
@@ -71,9 +77,9 @@ export default class LocalManager {
         const prevStateStore = this.prevStateStore as Array<any>
         const currentStateStore = this.to().plainUnpopulated()
 
-        if (!_.isEqual(prevStateStore, currentStateStore)){
-            prevStateStore.forEach( (value) => !!value[primary] && !_.find(currentStateStore, {[primary]: value[primary]}) && toDelete.push(value))
-            this.state.forEach( (value: Model) => !_.find(prevStateStore, value.to().plainUnpopulated()) && toUpdate.push(value))
+        if (!isEqual(prevStateStore, currentStateStore)){
+            prevStateStore.forEach( (value) => !!value[primary] && !find(currentStateStore, {[primary]: value[primary]}) && toDelete.push(value))
+            this.state.forEach( (value: Model) => !find(prevStateStore, value.to().plainUnpopulated()) && toUpdate.push(value))
         }
         return { toDelete: this.to().listClass(toDelete), toUpdate: toUpdate }
     }
@@ -108,7 +114,7 @@ export default class LocalManager {
 
     //find the first node matching the predicate see: https://lodash.com/docs/4.17.15#find
     public find = (predicate: any): Model | null => {
-        const o = _.find(this.to().plain(), predicate)
+        const o = find(this.to().plain(), predicate)
         if (o){
             const index = this.findIndex(o)
             return index < 0 ? null : this.state[index]
@@ -117,16 +123,16 @@ export default class LocalManager {
     }
 
     //return the index of the first element found matching the predicate. see https://lodash.com/docs/4.17.15#findIndex
-    public findIndex = (predicate: any): number => _.findIndex(this.to().plain(), predicate)
+    public findIndex = (predicate: any): number => findIndex(this.to().plain(), predicate)
 
 
     //pick up a list of node matching the predicate. see: https://lodash.com/docs/4.17.15#filter
-    public filter = (predicate: any): LocalManager => this.c.new( _.filter(this.to().plain(), predicate)).local()
+    public filter = (predicate: any): LocalManager => this.c.new( filter(this.to().plain(), predicate)).local()
 
     public first = (): Model | null => this.count() == 0 ? null : this.nodeAt(0)
 
     //return the index of the element passed in parameters if it exists in the list.
-    public indexOf = (v: any): number => _.findIndex(this.to().plain(), this.c.newNode(v).to().plain())
+    public indexOf = (v: any): number => findIndex(this.to().plain(), this.c.newNode(v).to().plain())
 
     public last = (): Model | null => this.count() == 0 ? null : this.nodeAt(this.count() - 1)
 
@@ -146,7 +152,7 @@ export default class LocalManager {
     public offset = (offset: number): LocalManager => this.slice(offset)
 
     //return a sorted array upon the parameters passed. see: https://lodash.com/docs/4.17.15#orderBy
-    public orderBy = (iteratees: any[] = [], orders: any[] = ['desc']): LocalManager => this.c.new(_.orderBy(this.to().plain(), iteratees, orders)).local()
+    public orderBy = (iteratees: any[] = [], orders: any[] = ['desc']): LocalManager => this.c.new(orderBy(this.to().plain(), iteratees, orders)).local()
 
     public pop = () => {
         const list = this.state.slice()
@@ -189,7 +195,7 @@ export default class LocalManager {
     //remove all the nodes matching the predicate. see https://lodash.com/docs/4.17.15#remove
     public removeBy = (predicate: any): this => {
         const statePlain = this.to().plain()
-        const e = _.remove(statePlain, predicate)
+        const e = remove(statePlain, predicate)
         !!e.length && this.set(statePlain)
         return this
     }
@@ -277,7 +283,7 @@ export default class LocalManager {
     public updateWhere = (predicate: any, toSet: Object): this => {
         let count = 0;
         for (let m of this.state)
-            _.find([m.to().plainUnpopulated()], predicate) && m.setState(toSet) && count++
+            find([m.to().plainUnpopulated()], predicate) && m.setState(toSet) && count++
         this.setManipulationResult(count)
         return this
     }

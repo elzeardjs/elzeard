@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
+import clone from 'lodash/clone'
 
 import Errors from '../errors'
 import { unpopulate, populate } from './utils'
@@ -116,7 +117,7 @@ export default class Model {
         if (this.super().option().isKidsPassed()){
             const prevStatePlain = this.super().prevStateStore
             const newStatePlain = this.to().plainUnpopulated()
-            if (!_.isEqual(prevStatePlain, newStatePlain)){
+            if (!isEqual(prevStatePlain, newStatePlain)){
                 this.mustValidateSchema(newStatePlain)
                 await this.sql().node(this).update()
                 this.super().fillPrevStateStore(newStatePlain)
@@ -170,7 +171,7 @@ export default class Model {
 
         const s = this.new(state).to().plainUnpopulated()
         const defaults = this.super().schemaSpecs().defaults()
-        const stateCopy = _.clone(s)
+        const stateCopy = clone(s)
 
         for (let key in s)
             s[key] === null && !defaults[key] && delete stateCopy[key]

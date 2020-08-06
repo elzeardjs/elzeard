@@ -1,4 +1,3 @@
-import config from '../config'
 import Collection from "../collection"
 import CollectionsManager from './collections'
 import { TableEngine, MigrationManager } from "joixsql"

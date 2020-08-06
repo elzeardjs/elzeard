@@ -1,9 +1,8 @@
 import Manager from './manager'
 import Collection from '../collection'
-import _ from 'lodash'
+import size from 'lodash/size'
 import { TableEngine } from 'joixsql'
 import config from '../config'
-import { Color } from '../utils'
 
 export default class CollectionsManager {
 
@@ -14,7 +13,7 @@ export default class CollectionsManager {
         this._m = m
     }
 
-    public count = () => _.size(this.get())
+    public count = () => size(this.get())
 
     public get = () => this._collections
     public manager = () => this._m

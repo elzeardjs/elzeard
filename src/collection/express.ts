@@ -1,8 +1,12 @@
 import _ from 'lodash'
-import Collection from './index'
-import Model from '../model'
+import isEmpty from 'lodash/isEmpty'
+import toPlainObject from 'lodash/toPlainObject'
+import find from 'lodash/find'
+
 import { IPopulate } from 'joixsql'
 import Knex from 'knex'
+import Collection from './index'
+import Model from '../model'
 
 export type TObjectStringAny = { [char: string]: string | number | null | Date } 
 
@@ -24,7 +28,7 @@ const checks = (c: Collection) => {
         uniqueKey.map((unique: string) => data[unique] !== undefined ? uniqueToFetch[unique] = data[unique] : null)
 
         //if unique key(s) are present in the data
-        if (!_.isEmpty(uniqueToFetch)){
+        if (!isEmpty(uniqueToFetch)){
             //pull the data into a new collection  
             const r = await c.ctx().sql().pull().where(function(this: Knex.QueryBuilder){
                 let r = this
@@ -85,7 +89,7 @@ const checks = (c: Collection) => {
                 return r
             })
             //convert RowDataPacket -> Object
-            ret = _.toPlainObject(ret[0])
+            ret = toPlainObject(ret[0])
 
             let emptyKey = null
             //for each value found.
@@ -94,7 +98,7 @@ const checks = (c: Collection) => {
                 if (ret[key] === null){
                     /* do some data-to-print formating */
                     const splited = key.split('-')
-                    const originToFetchElem = _.find(toFetch, (o: any[]) => o[0] === splited[0] && o[1] === splited[1]) as any[]
+                    const originToFetchElem = find(toFetch, (o: any[]) => o[0] === splited[0] && o[1] === splited[1]) as any[]
                     emptyKey = [splited[0], splited[1], originToFetchElem[2], originToFetchElem[3]]
                     break
                 }
