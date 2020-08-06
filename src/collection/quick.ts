@@ -2,6 +2,7 @@ import Model from '../model'
 import Collection from './'
 import errors from '../errors'
 import { areValidWhereArguments } from '../knex-tools'
+import { ICut } from '../sql/pull-methods'
 
 type TPrimary = string | number
 
@@ -12,8 +13,8 @@ export interface IQuick {
     remove(...primaryOrPredicate: any): Promise<Number>
     count(...v: any): Promise<Number>
     update(data: Object, ...predicate: any): Promise<Number>
-    fetch(...primaryOrPredicate: any): Promise<Model | null>
-    pull(...v: any): Promise<Collection>
+    find(...primaryOrPredicate: any): Promise<Model | null>
+    pull(...v: any): ICut
     test(v: any): Error | void
 }
 
@@ -67,28 +68,28 @@ export default (c: Collection): IQuick => {
         return await sql.update(data).where(...predicate)
     }
 
-    const fetch = async (...primaryOrPredicate: any) => {
+    const find = async (...primaryOrPredicate: any) => {
         const isOneArg = primaryOrPredicate.length == 1
         if (primaryOrPredicate.length === 0)
             throw new Error("Must contain a primary key or a predicate as a parameter")
 
         if (isOneArg && _checkPrimary(primaryOrPredicate[0]))
-            return await sql.fetch().byPrimary(primaryOrPredicate[0] as TPrimary)
+            return await sql.find().byPrimary(primaryOrPredicate[0] as TPrimary)
 
         if (!areValidWhereArguments(...primaryOrPredicate))
             throw new Error("arguments are not valid.")    
 
-        return sql.fetch().where(...primaryOrPredicate)
+        return sql.find().where(...primaryOrPredicate)
     }
 
-    const pull = async (...v: any) => {
+    const pull = (...v: any) => {
         if (v.length === 0)
-            return await c.ctx().sql().pull().all()
+            return c.ctx().sql().pull().all()
 
         if (!areValidWhereArguments(...v))
             throw new Error("arguments are not valid.")  
         
-        return await c.ctx().sql().pull().where(...v)
+        return c.ctx().sql().pull().where(...v)
     }
 
     const test = (v: any) => {
@@ -104,7 +105,7 @@ export default (c: Collection): IQuick => {
         remove,
         count,
         update,
-        fetch,
+        find,
         pull,
         test
     }

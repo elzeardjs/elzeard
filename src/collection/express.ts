@@ -35,7 +35,7 @@ const checks = (c: Collection) => {
                     r = r.where({[key]: uniqueToFetch[key]})
                     i++
                 }
-            })
+            }).run()
 
             //if we found at least one row existing with the parameter data 
             if (r.local().count() > 0){
@@ -180,7 +180,7 @@ const request = (c: Collection) => {
             }
 
             try {
-                const t = await c.quick().fetch(req.params.id)
+                const t = await c.quick().find(req.params.id)
                 if (!t)
                     res.sendStatus(404)
                 else {

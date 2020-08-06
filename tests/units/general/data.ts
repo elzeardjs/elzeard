@@ -42,7 +42,7 @@ export class SpotModel extends Model {
     name = () => this.state.name
     user = (): UserModel => this.state.user as UserModel
 
-    fetchPosts = async () => await posts.ctx().quick().pull({spot: this.ID()}) as PostList
+    fetchPosts = async () => await posts.ctx().quick().pull({spot: this.ID()}).run() as PostList
 }
 
 export class PostModel extends Model {
@@ -88,9 +88,9 @@ export class UserModel extends Model {
     countDevices = async () => await devices.quick().count({ user: this.ID() })
     countAllPosts = async () => await posts.quick().count({ user: this.ID() })
 
-    fetchDevices = async () => await devices.ctx().quick().pull({ user: this.ID() }) as DeviceList
-    fetchSpots = async () => await spots.ctx().quick().pull({user: this.ID()}) as SpotList
-    fetchPosts = async () => await posts.ctx().quick().pull({user: this.ID()}) as PostList
+    fetchDevices = async () => await devices.ctx().quick().pull({ user: this.ID() }).run() as DeviceList
+    fetchSpots = async () => await spots.ctx().quick().pull({user: this.ID()}).run() as SpotList
+    fetchPosts = async () => await posts.ctx().quick().pull({user: this.ID()}).run() as PostList
     fetchChats = async () => await chats.ctx().sql().pull().custom((q: Knex.QueryBuilder) => q.where({user_1: this.ID()}).orWhere({user_2: this.ID()}))
 }
 
@@ -134,7 +134,7 @@ export class ChatModel extends Model {
     user2 = (): UserModel => this.state.user as UserModel
     lastMessage = (): MessageModel => this.state.user as MessageModel
 
-    pullAllMessage = async () => await messages.ctx().quick().pull({chat: this.ID()}) as MessageList
+    pullAllMessage = async () => await messages.ctx().quick().pull({chat: this.ID()}).run() as MessageList
 }
 
 export class MessageModel extends Model {
@@ -194,7 +194,7 @@ export class ChatList extends Collection {
     }
 
     fetchWithUsers = async (userID_1: number, userID_2: number) => {
-        return await chats.ctx().sql().fetch().custom((q: Knex.QueryBuilder) => {
+        return await chats.ctx().sql().find().custom((q: Knex.QueryBuilder) => {
             return q.
                     whereIn('user_1', [userID_1, userID_2]).
                     and.
@@ -247,9 +247,9 @@ export class UserList extends Collection {
     //create = async (d: any) => await this.ctx().push(d).save()
 
     //fetch
-    fetchByUsername = async (username: string) => await this.quick().fetch({username}) as UserModel
-    fetchByID = async (id: number) => await this.quick().fetch(id) as UserModel
-    fetchByToken = async (access_token: string) => await this.quick().fetch({ access_token }) as UserModel
+    fetchByUsername = async (username: string) => await this.quick().find({username}) as UserModel
+    fetchByID = async (id: number) => await this.quick().find(id) as UserModel
+    fetchByToken = async (access_token: string) => await this.quick().find({ access_token }) as UserModel
 }
 
 export class UserSpecificList extends Collection {
@@ -261,9 +261,9 @@ export class UserSpecificList extends Collection {
     //create = async (d: any) => await this.ctx().push(d).save()
 
     //fetch
-    fetchByUsername = async (username: string) => await this.quick().fetch({username}) as UserSpecificModel
-    fetchByID = async (id: number) => await this.quick().fetch(id) as UserSpecificModel
-    fetchByToken = async (access_token: string) => await this.quick().fetch({ access_token }) as UserSpecificModel
+    fetchByUsername = async (username: string) => await this.quick().find({username}) as UserSpecificModel
+    fetchByID = async (id: number) => await this.quick().find(id) as UserSpecificModel
+    fetchByToken = async (access_token: string) => await this.quick().find({ access_token }) as UserSpecificModel
 }
 
 export const posts = new PostList([], {table: 'posts'})

@@ -3,7 +3,7 @@ const main = async () => {
 
     config.setMySQLConfig({
         host: '',
-        user: 'root',
+        user: '',
         password: '',
         database: ''
     })

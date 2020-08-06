@@ -1,22 +1,66 @@
 import knex, {QueryBuilder} from 'knex'
 import Collection from '../collection'
 
-export default (collection: Collection) => {
+export interface ICut {
+    limit(limit: number): ICut,
+    offset(offset: number): ICut,
+    orderBy(columnName: string, order: 'asc' | 'desc' | undefined): ICut,
+    run(): Promise<Collection>   
+}
 
+export default (collection: Collection) => {
     const sql = collection.sql()
     const queryRunner = async (q: knex.QueryBuilder) => await sql.format().pull(await q)
-    const query = sql.table().query() as any
+    let query = sql.table().query()
 
-    const all = async () => await queryRunner(query)
-    const custom = async (callback: (q: QueryBuilder) => QueryBuilder) => await queryRunner(callback(query as QueryBuilder))
-    const where = async (...value: any) => await queryRunner(query.where(...value))
-    const whereNot = async (...value: any) => await queryRunner(query.whereNot(...value))
-    const whereIn = async (cols: any, values: any) => await queryRunner(query.whereIn(cols, values))
-    const whereNotIn = async (col: string, values: any) => await queryRunner(query.whereNotIn(col, values))
+    const cut = (): ICut => {
+        const limit = (limit: number) => {
+            query = query.limit(limit)
+            return cut()
+        }
+        const offset = (offset: number) => {
+            query = query.offset(offset)
+            return cut()
+        }
 
-    return { 
-        all, custom, where,
-        whereNot, whereIn, whereNotIn,
-        queryRunner, query: sql.table().query()
+        const orderBy = (columnName: string, order: 'asc' | 'desc' | undefined) => {
+            query = query.orderBy(columnName, order)
+            return cut()
+        }
+
+        const run = () => queryRunner(query)
+
+        return {limit, offset, orderBy, run}
+    }
+
+    const where = (...value: any) => {
+        query = (query as any).where(...value) as knex.QueryBuilder
+        return cut()
+    }
+
+    const all = () => cut()
+
+    const whereNot = (...value: any) => {
+        query = (query as any).whereNot(...value) as knex.QueryBuilder
+        return cut()
+    }
+
+    const custom = (callback: (q: QueryBuilder) => QueryBuilder) => queryRunner(callback(query as QueryBuilder))
+    
+    const whereIn = (cols: any, values: any) => {
+        query = query.whereIn(cols, values)
+        return cut()
+    }
+
+    const whereNotIn = (cols: any, values: any) => {
+        query = query.whereNotIn(cols, values)
+        return cut()
+    }
+
+    return {
+        custom, 
+        all,
+        where, whereNot,
+        whereIn, whereNotIn
     }
 }

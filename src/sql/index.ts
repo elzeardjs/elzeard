@@ -5,7 +5,7 @@ import config from '../config'
 
 import countMethods from './count-methods'
 import removeMethods from './remove-methods'
-import fetchMethods from './fetch-methods'
+import findMethods from './find-methods'
 import formatMethods from './format-methods'
 import listMethods from './list-methods'
 import nodeMethods from './node-methods'
@@ -30,7 +30,7 @@ export default class SQLManager {
     public query = () => this.table().query()
     public count = () => countMethods(this.collection())
     public remove = () => removeMethods(this.collection())
-    public fetch = () => fetchMethods(this.collection())
+    public find = () => findMethods(this.collection())
     public format = () => formatMethods(this.collection()) 
     public list = (values: Model[]) => listMethods(values, this.collection())
     public node = (n: Model) => nodeMethods(n, this.collection())

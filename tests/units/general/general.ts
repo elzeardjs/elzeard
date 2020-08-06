@@ -2,6 +2,7 @@ import { manager, Model } from '../../../index'
 import _ from 'lodash'
 import { expect } from 'chai';
 import { chats, messages, posts, todos, devices, users, spots, SpotModel, PostModel, PostList, ChatList, ChatModel, MessageModel, UserModel, UserList, specificUsers, UserSpecificModel, UserSpecificList, TodoModel } from './data'
+import { notEqual } from 'assert';
 
 const FULL_TESTING = false
 
@@ -33,10 +34,10 @@ const main = async () => {
         
         expect((count1 as number - 2)).to.be.eq(count2).to.be.eq(count3).to.be.eq(count4 as number - 1).to.be.eq(1)
 
-        const u1Fetched = await specificUsers.quick().fetch(u1.ID()) as UserSpecificModel
-        const u2Fetched = await specificUsers.quick().fetch({id: u2.ID()}) as UserSpecificModel
-        const u3Fetched = await specificUsers.quick().fetch('id', u3.ID()) as UserSpecificModel
-        const u3BFetched = await specificUsers.quick().fetch('id', '=', u3.ID()) as UserSpecificModel
+        const u1Fetched = await specificUsers.quick().find(u1.ID()) as UserSpecificModel
+        const u2Fetched = await specificUsers.quick().find({id: u2.ID()}) as UserSpecificModel
+        const u3Fetched = await specificUsers.quick().find('id', u3.ID()) as UserSpecificModel
+        const u3BFetched = await specificUsers.quick().find('id', '=', u3.ID()) as UserSpecificModel
 
         expect(_.isEqual(u1Fetched.to().plain(), u1.to().plain())).to.eq(true)
         expect(_.isEqual(u2Fetched.to().plain(), u2.to().plain())).to.eq(true)
@@ -46,12 +47,12 @@ const main = async () => {
         const allCreated = specificUsers.ctx()
         allCreated.local().append(u1, u2, u3)
 
-        const allPulled = await specificUsers.ctx().quick().pull()
+        const allPulled = await specificUsers.ctx().quick().pull().run()
         expect(_.isEqual(allCreated.local().to().plain(), allPulled.local().to().plain())).to.eq(true)
 
-        const pullFirst = await specificUsers.ctx().sql().pull().where({id: u1.ID()}) as UserSpecificList
-        const pullSecond = await specificUsers.ctx().quick().pull('id', u2.ID()) as UserSpecificList
-        const pullThree = await specificUsers.ctx().quick().pull('id', '<=', u3.ID())
+        const pullFirst = await specificUsers.ctx().sql().pull().where({id: u1.ID()}).run() as UserSpecificList
+        const pullSecond = await specificUsers.ctx().quick().pull('id', u2.ID()).run() as UserSpecificList
+        const pullThree = await specificUsers.ctx().quick().pull('id', '<=', u3.ID()).run()
 
         expect(pullFirst.local().count()).to.eq(1).to.eq(pullSecond.local().count())
         expect((pullFirst.local().nodeAt(0) as UserSpecificModel).accessToken()).to.eq(u1.accessToken())
@@ -59,21 +60,21 @@ const main = async () => {
         expect(_.isEqual(allCreated.local().to().plain(), pullThree.local().to().plain())).to.eq(true)
         
         await specificUsers.quick().update({'username': 'fantasim'}, {'id': u1.ID()})
-        const u1reFetched = await specificUsers.quick().fetch(u1.ID()) as UserSpecificModel
+        const u1reFetched = await specificUsers.quick().find(u1.ID()) as UserSpecificModel
         expect(u1reFetched.username()).to.eq('fantasim')
 
         await specificUsers.quick().update({'username': 'skily'}, 'id', u2.ID())
-        const u2reFetched = await specificUsers.quick().fetch(u2.ID()) as UserSpecificModel
+        const u2reFetched = await specificUsers.quick().find(u2.ID()) as UserSpecificModel
         expect(u2reFetched.username()).to.eq('skily')
 
         await specificUsers.quick().update({'username': 'arponpon'}, 'id', '=', u3.ID())
-        const u3reFetched = await specificUsers.quick().fetch(u3.ID()) as UserSpecificModel
+        const u3reFetched = await specificUsers.quick().find(u3.ID()) as UserSpecificModel
         expect(u3reFetched.username()).to.eq('arponpon')
 
         const now = new Date()
         now.setMilliseconds(0)
         await specificUsers.quick().update({created_at: now})
-        const allPulled2 = await specificUsers.ctx().quick().pull() as UserSpecificList
+        const allPulled2 = await specificUsers.ctx().quick().pull().run() as UserSpecificList
         for (let i = 0; i < allPulled2.local().count(); i++){
             const m = allPulled2.local().nodeAt(i) as UserSpecificModel
             expect(_.isEqual(m.createdAt(), now))
@@ -94,7 +95,7 @@ const main = async () => {
             } catch (e){
                 console.log(e)
             }
-            const list = await users.ctx().sql().pull().all()
+            const list = await users.ctx().sql().pull().all().run()
             expect(list.local().count()).to.eq(1)    
         }
     })
@@ -104,7 +105,7 @@ const main = async () => {
         expect(u).to.not.eq(null)
         if ( (await u.countDevices()) == 0){
             await devices.quick().create({user: u.ID()})
-            const list = await devices.ctx().quick().pull()
+            const list = await devices.ctx().quick().pull().run()
             expect(list.local().count()).to.eq(1)            
         }
     })
@@ -125,7 +126,7 @@ const main = async () => {
         if ((await u.countOwnedSpot()) < 2){
             await spots.quick().create({ name: 'Bitcoin', user: u.ID() })
             await spots.quick().create({ name: 'Ethereum', user: u.ID(), description: 'This is a spot for the ethereum community.' })
-            const list = await spots.ctx().quick().pull()
+            const list = await spots.ctx().quick().pull().run()
             expect(list.local().count()).to.eq(2)
         }
     })
@@ -204,15 +205,15 @@ const main = async () => {
             spot: 1
         }) as PostModel
 
-        let newPost = (await posts.quick().fetch(p.ID())) as PostModel
+        let newPost = (await posts.quick().find(p.ID())) as PostModel
         expect(_.isEqual(p.to().plain(), newPost.to().plain())).to.equal(true)
         expect(p.spot().name()).to.eq('Bitcoin')
         await p.setState({ spot: 2 }).saveToDB()
-        newPost = (await posts.sql().fetch().byPrimary(p.ID())) as PostModel
+        newPost = (await posts.sql().find().byPrimary(p.ID())) as PostModel
         expect(newPost.spot().name()).to.eq('Ethereum')
 
         await localPosts.sql().node(p).delete()
-        newPost = (await posts.sql().fetch().byPrimary(p.ID())) as PostModel
+        newPost = (await posts.sql().find().byPrimary(p.ID())) as PostModel
         expect(newPost).to.equal(null)
     })
 
@@ -224,7 +225,7 @@ const main = async () => {
             } catch (e){
                 console.log(e)
             }
-            const list = await users.ctx().sql().pull().all()
+            const list = await users.ctx().sql().pull().all().run()
             expect(list.local().count()).to.eq(2)    
         }
     })
@@ -234,7 +235,7 @@ const main = async () => {
         expect(u).to.not.eq(null)
         if ((await u.countDevices()) == 0){
             await devices.quick().create({user: u.ID()})
-            const list = await devices.ctx().sql().pull().all()
+            const list = await devices.ctx().sql().pull().all().run()
             expect(list.local().count()).to.eq(2)
         }
     })
@@ -289,6 +290,19 @@ const main = async () => {
         expect(messagesPlainFiltered[0].user.username).to.not.eq(undefined)
     })
 
+    it('Test pull: offset/limit', async () => {
+        const list = await posts.quick().pull().limit(3).run()
+        expect(list.local().count()).to.eq(3)
+        const list2 = await posts.quick().pull().offset(2).limit(3).run()
+        expect(list2.local().count()).to.eq(2)
+    })
+
+    it('Test pull: orderBy', async () => {
+        const list = await posts.quick().pull().orderBy('id', 'desc').limit(1).run()
+        const node = list.local().nodeAt(0)
+        expect(list.local().count()).to.equal(1)
+        expect(node?.state.id).to.eq(4)
+    })
 
     if (FULL_TESTING){
         it('Add 50 messages in 1 package', async () => {
