@@ -16,7 +16,9 @@ export default (collection: Collection) => {
     const lastBy = async (column: string | void): Promise<(Model | null)> => {
         return await queryRunner(query.orderBy(column || primary, 'desc'))
     }
-
+    const firstBy = async (column: string | void): Promise<(Model | null)> => {
+        return await queryRunner(query.orderBy(column || primary, 'asc'))
+    }
     const custom = async (callback: (q: QueryBuilder) => QueryBuilder) => await queryRunner(callback(query as QueryBuilder))
     const where = async (...value: any) => await queryRunner(query.where(...value))
     const whereNot = async (...value: any) => await queryRunner(query.whereNot(...value))
@@ -25,7 +27,7 @@ export default (collection: Collection) => {
 
 
     return { 
-        byPrimary, lastBy,
+        byPrimary, lastBy, firstBy,
         
         custom, where, whereNot, 
         whereIn, whereNotIn, 
