@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep'
 export const Color = {
     Reset: "\x1b[0m",
     Bright: "\x1b[1m",
@@ -24,4 +25,16 @@ export const Color = {
     BgMagenta: "\x1b[45m",
     BgCyan: "\x1b[46m",
     BgWhite: "\x1b[47m"
+}
+
+export type TMySQLDataObject = { [char: string]: number | Date | string | boolean } 
+
+export const convertAllDateToISOString = (o: TMySQLDataObject) => {
+  const copy = cloneDeep(o)
+  for (let key in o){
+    if (o[key] instanceof Date){
+      copy[key] = (o[key] as Date).toISOString().slice(0, 19).replace('T', ' ');
+    }
   }
+  return copy
+}

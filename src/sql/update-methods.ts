@@ -1,12 +1,13 @@
 import knex, {QueryBuilder} from 'knex'
 import Model from '../model'
 import Collection from '../collection'
+import { convertAllDateToISOString } from '../utils'
 
 export default (value: Model | Object, collection: Collection) => {
     const sql = collection.sql()
 
     const queryRunner = async (q: knex.QueryBuilder): Promise<Number> => await q
-    const data = () => value instanceof Model ? value.to().plainUnpopulated() : value as any;
+    const data = () => convertAllDateToISOString(value instanceof Model ? value.to().plainUnpopulated() : value as any);
     const query = sql.table().query().update(data()) as any
 
     const all = async () => await queryRunner(query)

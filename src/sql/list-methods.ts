@@ -2,6 +2,7 @@ import Model from '../model'
 import Collection from '../collection'
 import { insertOrUpdate } from '../knex-tools'
 import isEmpty from 'lodash/isEmpty'
+import { convertAllDateToISOString } from '../utils'
 
 export default (list: Model[], collection: Collection) => {
     const sql = collection.sql()
@@ -9,7 +10,7 @@ export default (list: Model[], collection: Collection) => {
     const query = sql.table().query()
     const primary = collection.super().schemaSpecs().getPrimaryKey()
 
-    const jsonData: any[] = list.map((elem) => elem.to().plainUnpopulated())
+    const jsonData: any[] = list.map((elem) => convertAllDateToISOString(elem.to().plainUnpopulated() ))
     const arrayIDs = collection.new(list).local().to().arrayPrimary()
     
     const insert = async () => await update()
