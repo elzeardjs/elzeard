@@ -117,15 +117,13 @@ const checks = (c: Collection) => {
 /* MIDDLEWARE UTIL METHODS */
 
 const middleware = (c: Collection) => {
-    const schemaValidator = () => { 
-        return (req: any, res: any, next: any) => { 
-            const err = c.quick().test(req.body)
-            if (!err)
-                next()
-            else {
-                res.status(422).json({ error: err.toString() })
-            }
-        } 
+    const schemaValidator = (req: any, res: any, next: any) => { 
+        const err = c.quick().test(req.body)
+        if (!err)
+            next()
+        else {
+            res.status(422).json({ error: err.toString() })
+        }
     }
     return { schemaValidator }
 }

@@ -137,20 +137,26 @@ export default class Model {
     }
 
     //Only usable in a Model/State
-    public setState = (o = this.state) => {
+    public setState = (o = this.state, skipSchemaValidation?: boolean) => {
         this._checkIfModelIsDestroyed()
         if (!Model._isObject(o))
             throw errors.onlyObjectOnModelState()
 
         const newState = Object.assign({}, this.state, o)
         try {
-            this.mustValidateSchema(newState)
+            !skipSchemaValidation && this.mustValidateSchema(newState)
             this._set(newState)
             verifyAllModel(this) 
         } catch (e){
             throw new Error(e)
         }
         return this
+    }
+
+    public deleteKey = (key: string) => {
+        const newState = Object.assign({}, this.state)
+        delete newState[key]
+        this._set(newState)
     }
 
     public populate = async () => {
