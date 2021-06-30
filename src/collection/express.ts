@@ -137,7 +137,13 @@ const request = (c: Collection) => {
     const postHandler = (keysAllowed: string[], filterGroup: string | void) => {
         return async (req: any, res: any) => { 
             const data: TObjectStringAny = {}
-            keysAllowed.map((v: string) => data[v] = req.body[v] || null)
+            keysAllowed.map((v: string) => {
+                const val = req.body[v]
+                if (val === null || val === NaN || val === undefined)
+                    data[v] = null
+                else 
+                    data[v] = val
+            })
         
             const errUnique = await checks(c).uniqueConstraint(data)
             if (errUnique){
@@ -166,7 +172,13 @@ const request = (c: Collection) => {
     const putHandler = (keysAllowed: string[], filterGroup: string | void) => {
         return async (req: any, res: any) => { 
             const data: any = {}
-            keysAllowed.map((v: string) => data[v] = req.body[v] || null)
+            keysAllowed.map((v: string) => {
+                const val = req.body[v]
+                if (val === null || val === NaN || val === undefined)
+                    data[v] = null
+                else 
+                    data[v] = val
+            })
     
             const errUnique = await checks(c).uniqueConstraint(data)
             if (errUnique){
