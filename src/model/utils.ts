@@ -13,6 +13,10 @@ export const GROUP_PLAIN_OPTION = 'group'
 export const toPlain = (m: Model, opt: string | void): any => {
     const ret: any = {}; 
     
+
+
+
+    
     const recur = (o: any, path: string, groupKeys: string[] = []) => {
         
         //if this is a plain object
@@ -40,7 +44,7 @@ export const toPlain = (m: Model, opt: string | void): any => {
         set(ret, path, o)
     }
 
-    recur(m.state, '')
+    recur(m, '')
 
     return ret
 }

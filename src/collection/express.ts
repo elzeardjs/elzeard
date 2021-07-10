@@ -159,6 +159,7 @@ const request = (c: Collection) => {
             }
 
             try {
+                console.log(data)
                 const m = await c.quick().create(data)
                 res.status(201)
                 res.json(m.to().filterGroup(filterGroup).plain())
@@ -214,10 +215,6 @@ const request = (c: Collection) => {
 
 
 export default (c: Collection) => {
-    // if (!require('express')){
-    //     throw new Error(`Express should be installed in your package to use the acey express tools.`)
-    // }
-
     return {
         request: () => request(c),
         middleware: () => middleware(c) ,
