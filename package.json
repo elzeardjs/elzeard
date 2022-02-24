@@ -16,12 +16,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arysociety/elzeard.git"
+    "url": "git+https://github.com/elzeardjs/elzeard.git"
   },
   "bugs": {
-    "url": "https://github.com/arysociety/elzeard/issues"
+    "url": "https://github.com/elzeardjs/elzeard/issues"
   },
-  "homepage": "https://github.com/arysociety/elzeard#readme",
+  "homepage": "https://github.com/elzeardjs/elzeard#readme",
   "dependencies": {
     "joixsql": "^1.1.5",
     "knex": "^0.21.1",
