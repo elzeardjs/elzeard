@@ -51,7 +51,8 @@ export default class Collection {
     public expressTools = () => ExpressTools(this)
 
     constructor(list: any[] = [], models: [Constructor<Model>, Constructor<Collection>], ...props: any){
-        this._contextID = r && r++
+        this._contextID = r
+        r++
         this._local = new LocalManager(this)
         this._option = new OptionManager(this, Object.assign({}, { nodeModel: models[0], nodeCollection: models[1] }, props[0]))
         

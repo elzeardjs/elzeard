@@ -10,6 +10,30 @@ export const plainPopulatedToPopulate = (c: Collection) => {
     }
 }
 
+/*
+    Populate is the key feature of Elzeard.
+    Populate() allows to gather common lines in different table and to format them in a common object. 
+    This function only affects columns carrying the extension foreignKey() or populate() in the Schema of your Model.
+    Example:
+    static schema = Joi.object({
+        //Through populate(), here:
+        user: Joi.number().positive().required().populate('users', 'id')
+        //Or through foreignKey(), here:
+        user2: Joi.number().required().foreignKey('users', 'id')
+    })
+
+    What's the use of foreignKey() and populate() in the schema declaration, what is their difference ?
+
+    - foreignKey(): Is a SQL foreign key. A column specifying this option will benefit SQL dependance features with the table and column
+    linked with. foreignKey() use also the populate() method features.
+    
+    - populate(): Enable to indicate a link with a column from a different table to then format the 2 lines of these 2 tables in a one common object. 
+    (This method doesn't have any involvement on the SQL plan and doesn't have the security of foreign key in terms of data dependance.)
+
+    Populate will format your Model, replacing all values where the keys carry the foreignKey() or populate(), by the reference Model of these last ones.
+    Example: https://gist.github.com/Fantasim/dde84408323bdcc89d971fe54ca3b45f
+*/
+
 export const populate = async (c: Collection) => {
     if (c.local().count() === 0 || c.super().is().populated() || !c.super().is().populatable())
         return

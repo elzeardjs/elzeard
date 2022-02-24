@@ -30,24 +30,28 @@ export default (c: Collection) => {
         return ret
     }
 
+    //Returns an array of the primary keys
     const arrayPrimary = (): any[] => {
         const ret: any[] = []
         plainUnpopulated().forEach((elem: any) => elem[primary] && ret.push(elem[primary]))
         return ret
     }
 
+    //Filter the result rendered by specifying a group name
     const filterGroup = (groupName: string | void) => {
         filterGroupName = groupName
         isFilterGroup = true
         return JSONStringMethods
     }
 
+    //Returns the collection state into a plain object
     const plain = (): any => {
         const ret: any[] = []
         c.local().state.forEach((m: Model) => ret.push(queryMiddleWare(m.to()).plain()))
         return ret
     }
 
+    //Returns the populated collection state into a plain object
     const plainPopulated = async () => {
         if (isUnpopulated || isPlainPopulated){
             const populated = await c.copy().local().populate()
@@ -56,13 +60,16 @@ export default (c: Collection) => {
         return plain()
     }
 
+     //Returns the unpopulated collection state into a plain object
     const plainUnpopulated = (): any => isUnpopulated ? plain() : c.copy().local().unpopulate().to().plain()
 
+    //Returns the collection state into string object
     const string = (): string => JSON.stringify(plain())
+    //Returns the populated collection state into string object
     const stringPopulated = async () => JSON.stringify(await plainPopulated())
+    //Returns the unpopulated collection state into string object
     const stringUnpopulated = () => JSON.stringify(plainUnpopulated())
 
-    
     const JSONStringMethods = {
         plain, 
         plainPopulated,

@@ -135,7 +135,6 @@ export const plainPopulateToPopulate = (m: Model) => {
     Populate will format your Model, replacing all values where the keys carry the foreignKey() or populate(), by the reference Model of these last ones.
     Example: https://gist.github.com/Fantasim/dde84408323bdcc89d971fe54ca3b45f
 */
-
 export const populate = async (m: Model) => {
     if (!m.super().option().isKidsPassed())
         throw errors.noCollectionBinding(m)

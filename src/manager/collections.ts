@@ -33,6 +33,7 @@ export default class CollectionsManager {
 
     public dropAllTable = () => TableEngine.dropAllFromEcosystem()
 
+    //Verify the schema of every collection registered in the manager
     public verifyAll = () => {
         this.forEach((c: Collection) => {
             config.ecosystem().verify(c.super().schemaSpecs().ecosystemModel()).all()

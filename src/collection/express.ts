@@ -131,7 +131,6 @@ const middleware = (c: Collection) => {
 
 
 /* REQUEST UTIL METHODS */
-
 const request = (c: Collection) => {
 
     const postHandler = (keysAllowed: string[], filterGroup: string | void) => {

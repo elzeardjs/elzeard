@@ -18,6 +18,7 @@ export interface IQuick {
     test(v: any): Error | void
 }
 
+//To execute minimalistic sql queries
 export default (c: Collection): IQuick => {
     const sql = c.sql()
 
@@ -92,6 +93,7 @@ export default (c: Collection): IQuick => {
         return c.ctx().sql().pull().where(...v)
     }
 
+    //Check if the data passes the schema validator to be added in the table 
     const test = (v: any) => {
         try {
             c.newNode(undefined).mustValidateSchema(v)
