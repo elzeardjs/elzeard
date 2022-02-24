@@ -3,6 +3,7 @@ import Model from '../model'
 import Collection from '../collection'
 import { convertAllDateToISOString } from '../utils'
 
+//Update rows in a specific collection
 export default (value: Model | Object, collection: Collection) => {
     const sql = collection.sql()
 

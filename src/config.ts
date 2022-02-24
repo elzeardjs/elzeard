@@ -13,6 +13,7 @@ class Config {
 
     setHistoryDirPath = (historyFolderPath: string) => config.set({historyDir: historyFolderPath})
 
+    /* Ecosystem is a class used by JOIxSQL that manages tables creation and migration */
     ecosystem = () => config.ecosystem() as Ecosystem
     mysqlConnexion = () => config.mysqlConnexion() as knex<any, unknown[]>
     

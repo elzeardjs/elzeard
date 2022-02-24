@@ -2,6 +2,7 @@ import SQLManager from './index'
 import Collection from '../collection'
 import {TableEngine } from 'joixsql'
 
+//Perform simple requests on the table of a collection
 export default (collection: Collection) => {
 
     const query = () => SQLManager.mysql()(name())

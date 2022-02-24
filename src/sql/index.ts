@@ -28,13 +28,22 @@ export default class SQLManager {
     private collection = (): Collection => this._c
 
     public query = () => this.table().query()
+    //Count rows
     public count = () => countMethods(this.collection())
+    //Remove rows
     public remove = () => removeMethods(this.collection())
+    //Find a specific row
     public find = () => findMethods(this.collection())
+    //to format SQL request output
     public format = () => formatMethods(this.collection()) 
+    //Perform SQL request based on a list of Models
     public list = (values: Model[]) => listMethods(values, this.collection())
+    //Perform SQL request based on a Model
     public node = (n: Model) => nodeMethods(n, this.collection())
+    //Fetch rows and set them in a new returned Collection
     public pull = () => pullMethods(this.collection())
+    //Perform SQL request on a table
     public table = () => tableMethods(this.collection())
+    //Update rows
     public update = (value: Model | Object) => updateMethods(value, this.collection()) 
 }

@@ -2,6 +2,9 @@ import knex, {QueryBuilder} from 'knex'
 import Model from '../model'
 import Collection from '../collection'
 
+/* 
+    Perform SELECT request expecting one result
+*/
 export default (collection: Collection) => {
     const primary = collection.super().schemaSpecs().getPrimaryKey()
     const sql = collection.sql()

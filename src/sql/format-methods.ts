@@ -2,6 +2,9 @@ import knex from 'knex'
 import Collection from '../collection'
 import Model from '../model'
 
+/*
+    Enable Knex SQL request output to be formated into renderable data
+*/
 export default (collection: Collection) => {
 
     const toModel = async (result: knex.Select) => !Model._isObject(result) ? null : await collection.newNode(result).populate()

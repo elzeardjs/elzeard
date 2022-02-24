@@ -1,6 +1,9 @@
 import knex, {QueryBuilder} from 'knex'
 import Collection from '../collection'
 
+/* 
+    Perform COUNT SQL request of a specific collection
+*/
 export default (collection: Collection) => {
     const query = collection.sql().table().query().count(`* as count`) as any
 

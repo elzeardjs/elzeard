@@ -29,6 +29,7 @@ export const Color = {
 
 export type TMySQLDataObject = { [char: string]: number | Date | string | boolean } 
 
+//Convert date into ISO string in an object
 export const convertAllDateToISOString = (o: TMySQLDataObject) => {
   const copy = cloneDeep(o)
   for (let key in o){

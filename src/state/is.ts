@@ -18,7 +18,6 @@ export interface IIs {
     populatable(): boolean
 }
 
-
 export default (dataType: Collection | Model): IIs => {
 
     const empty = (): boolean => isEmpty(dataType instanceof Model ? dataType.state : dataType.local().state)

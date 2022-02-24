@@ -3,6 +3,8 @@ import SQLManager from './sql'
 import _ from 'lodash'
 import knex from 'knex'
 
+
+// Insert a row if it doesn't exist yet, or update it if it does.
 export const insertOrUpdate = async (tableName: string, p: Array<Object> | Object) => {
 
     const rows = !_.isArray(p) ? [p] : p
@@ -21,6 +23,7 @@ export const insertOrUpdate = async (tableName: string, p: Array<Object> | Objec
     })
 }
 
+//Check if the arguments are receivable by the methods 'where...' in knex.js
 export const areValidWhereArguments = (...args: any) => {
     if (args.length == 0)
         return false
