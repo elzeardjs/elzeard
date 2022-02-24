@@ -8,6 +8,7 @@ export interface ICut {
     run(): Promise<Collection>   
 }
 
+//Enable to fetch rows and set them in a new returned Collection
 export default (collection: Collection) => {
     const sql = collection.sql()
     const queryRunner = async (q: knex.QueryBuilder) => await sql.format().pull(await q)

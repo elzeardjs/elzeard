@@ -1,13 +1,9 @@
 import  { config } from '../../../index'
-const main = async () => {
+import {  HISTORY_FOLDER, SQL_CONFIG} from './config'
 
-    config.setMySQLConfig({
-        host: '185.212.226.103',
-        user: 'root',
-        password: '',
-        database: 'inspirationeum'
-    })
-    config.setHistoryDirPath('./history')
+const main = async () => {
+    config.setMySQLConfig(SQL_CONFIG)
+    config.setHistoryDirPath(HISTORY_FOLDER)
     require('./general')
 }
 

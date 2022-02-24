@@ -15,7 +15,7 @@ class Config {
 
     /* Ecosystem is a class used by JOIxSQL that manages tables creation and migration */
     ecosystem = () => config.ecosystem() as Ecosystem
-    mysqlConnexion = () => config.mysqlConnexion() as knex<any, unknown[]>
+    mysqlConnexion = (): knex<any, unknown[]> => config.mysqlConnexion() as any
     
     setMySQLConfig = (conf: MySqlConnectionConfig) => config.set({mysqlConfig: conf})
     setCriticalCode = (code: string) => config.set({criticalCode: code})

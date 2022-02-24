@@ -13,10 +13,6 @@ export const GROUP_PLAIN_OPTION = 'group'
 export const toPlain = (m: Model, opt: string | void): any => {
     const ret: any = {}; 
     
-
-
-
-    
     const recur = (o: any, path: string, groupKeys: string[] = []) => {
         
         //if this is a plain object
@@ -69,8 +65,10 @@ export const doesContainNestedModel = (m: Model) => {
     return false
 }
 
+//Returns true if the model contains at least a key/value that has the option foreignKey() or populate()
 export const isPopulatable = (m: Model) => m.super().schemaSpecs().getPopulate().length > 0
 
+//Opposite than the populate method
 export const unpopulate = (m: Model) => {
     for (const key in m.state){
         if (m.state[key] instanceof Model){
@@ -85,6 +83,10 @@ export const unpopulate = (m: Model) => {
     }
 }
 
+/*
+    i) Groups allows to remove unnecessary data from an object by specyfing only the required key/value
+    Format a populated objects if a group is mentionned by selecting the needed key/value
+*/
 export const handleModelGroup = (populate: IPopulate, m: Model | null) => {
     const { group_id } = populate
     if (group_id && m){
@@ -94,6 +96,7 @@ export const handleModelGroup = (populate: IPopulate, m: Model | null) => {
     return m
 }
 
+//Transform a populated Model with nested objects into a populated Model with nested Models
 export const plainPopulateToPopulate = (m: Model) => {
     if (m.super().is().plainPopulated()){
         const populates = m.super().schemaSpecs().getPopulate()
@@ -108,6 +111,30 @@ export const plainPopulateToPopulate = (m: Model) => {
         }
     }
 }
+
+/*
+    Populate is the key feature of Elzeard.
+    Populate() allows to gather common lines in different table and to format them in a common object. 
+    This function only affects columns carrying the extension foreignKey() or populate() in the Schema of your Model.
+    Example:
+    static schema = Joi.object({
+        //Through populate(), here:
+        user: Joi.number().positive().required().populate('users', 'id')
+        //Or through foreignKey(), here:
+        user2: Joi.number().required().foreignKey('users', 'id')
+    })
+
+    What's the use of foreignKey() and populate() in the schema declaration, what is their difference ?
+
+    - foreignKey(): Is a SQL foreign key. A column specifying this option will benefit SQL dependance features with the table and column
+    linked with. foreignKey() use also the populate() method features.
+    
+    - populate(): Enable to indicate a link with a column from a different table to then format the 2 lines of these 2 tables in a one common object. 
+    (This method doesn't have any involvement on the SQL plan and doesn't have the security of foreign key in terms of data dependance.)
+
+    Populate will format your Model, replacing all values where the keys carry the foreignKey() or populate(), by the reference Model of these last ones.
+    Example: https://gist.github.com/Fantasim/dde84408323bdcc89d971fe54ca3b45f
+*/
 
 export const populate = async (m: Model) => {
     if (!m.super().option().isKidsPassed())

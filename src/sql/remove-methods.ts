@@ -1,6 +1,7 @@
 import knex, {QueryBuilder} from 'knex'
 import Collection from '../collection'
 
+//Remove rows in a specific collection
 export default (collection: Collection) => { 
     const primary = collection.super().schemaSpecs().getPrimaryKey()
     const query = collection.sql().table().query().del() as any

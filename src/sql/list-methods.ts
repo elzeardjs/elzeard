@@ -5,8 +5,8 @@ import isEmpty from 'lodash/isEmpty'
 import { convertAllDateToISOString } from '../utils'
 import Errors from '../errors'
 
-//Perform SQL requests based on a list of Models or Objects, in a specific collection
-export default (list: Model[] | {[key: string]: any}[], collection: Collection) => {
+//Perform SQL requests based on a list of Models
+export default (list: Model[], collection: Collection) => {
     const sql = collection.sql()
     const format = sql.format()
     const query = sql.table().query()

@@ -7,7 +7,9 @@ import Model from '../model'
 */
 export default (collection: Collection) => {
 
-    const toModel = async (result: knex.Select) => !Model._isObject(result) ? null : await collection.newNode(result).populate()
+    const toModel = async (result: knex.Select) => {
+        return !Model._isObject(result) ? null : await collection.newNode(result).populate()
+    }
     
     const toCollection = async (result: any[]) => (await collection.new(result).local().populate()).fillPrevStateStore()
 

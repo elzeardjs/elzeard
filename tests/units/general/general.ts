@@ -1,8 +1,10 @@
 import { manager, Model } from '../../../index'
 import _ from 'lodash'
 import { expect } from 'chai';
-import { chats, messages, posts, todos, devices, users, spots, SpotModel, PostModel, PostList, ChatList, ChatModel, MessageModel, UserModel, UserList, specificUsers, UserSpecificModel, UserSpecificList, TodoModel } from './data'
-import { notEqual } from 'assert';
+import { chats, messages, posts, todos, devices, users, spots, specificUsers, SpotModel, PostModel, PostList, ChatList, ChatModel, MessageModel, UserModel, UserList, UserSpecificModel, UserSpecificList, TodoModel } from './data'
+import fs from 'fs'
+import { HISTORY_FOLDER } from './config'
+import  { config } from '../../../index'
 
 const FULL_TESTING = false
 
@@ -13,6 +15,26 @@ const main = async () => {
     const SECOND_USERNAME = 'paul'
     const SECOND_ACCESS_TOKEN = 'cbd12084-4dac-4d9d-8962-59e37771ed04'
 
+    it('Remove history repository', async () => {
+        fs.rmdirSync(HISTORY_FOLDER, {recursive: true})
+        fs.mkdirSync(HISTORY_FOLDER)
+        config.disableCriticalConfirmation()
+        config.disableLog()
+        config.disableMigrationRemovingOnError()
+
+        await config.mysqlConnexion().raw('SET foreign_key_checks = 0;')
+        await config.mysqlConnexion().schema.dropTableIfExists(chats.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(messages.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(posts.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(todos.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(devices.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(users.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(specificUsers.super().option().table())
+        await config.mysqlConnexion().schema.dropTableIfExists(spots.super().option().table())
+        await config.mysqlConnexion().raw('SET foreign_key_checks = 1;')
+
+    })
+
     it('Create Tables', async () => {
         await manager.init()
     })
@@ -20,7 +42,6 @@ const main = async () => {
     it('Try add in a global Collection', async () => {
         expect(() => users.local().push({username: 'fakeuser1', access_token: '5353415a-f997-4754-8a6f-15ef66fe25a3'})).to.throw(Error)
     })
-
 
     it('Test quick', async () => {
         const u1 = await specificUsers.quick().create({ username: 'fakeuser1', access_token: '5353415a-f997-4754-8a6f-15ef66fe25a3' }) as UserSpecificModel
@@ -34,7 +55,7 @@ const main = async () => {
         
         expect((count1 as number - 2)).to.be.eq(count2).to.be.eq(count3).to.be.eq(count4 as number - 1).to.be.eq(1)
 
-        const u1Fetched = await specificUsers.quick().find(u1.ID()) as UserSpecificModel
+        const u1Fetched = await specificUsers.sql().find().byPrimary(u1.ID()) as UserSpecificModel
         const u2Fetched = await specificUsers.quick().find({id: u2.ID()}) as UserSpecificModel
         const u3Fetched = await specificUsers.quick().find('id', u3.ID()) as UserSpecificModel
         const u3BFetched = await specificUsers.quick().find('id', '=', u3.ID()) as UserSpecificModel
@@ -43,7 +64,7 @@ const main = async () => {
         expect(_.isEqual(u2Fetched.to().plain(), u2.to().plain())).to.eq(true)
         expect(_.isEqual(u3Fetched.to().plain(), u3.to().plain())).to.eq(true)
         expect(_.isEqual(u3BFetched.to().plain(), u3.to().plain())).to.eq(true)
-        
+
         const allCreated = specificUsers.ctx()
         allCreated.local().append(u1, u2, u3)
 

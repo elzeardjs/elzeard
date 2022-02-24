@@ -3,7 +3,7 @@ import Model from '../model'
 import Collection from '../collection'
 
 /* 
-    Perform SELECT request expecting one result
+    Perform SELECT request expecting one result on a specific collection
 */
 export default (collection: Collection) => {
     const primary = collection.super().schemaSpecs().getPrimaryKey()

@@ -8,7 +8,7 @@ import { Ecosystem, ISchema } from 'joixsql'
 
 import to from './to'
 import IsManager, {IIs} from '../state/is'
-import OptionManager from '../state/option'
+import OptionManager, { IOptions } from '../state/option'
 import SQLManager from '../sql'
 import errors from '../errors'
 import config from '../config'
@@ -22,7 +22,6 @@ export interface ISuper {
     prevStateStore: any
     group: string[]
 }
-
 
 type Constructor<T> = new(...args: any[]) => T;
 
@@ -40,9 +39,15 @@ export default class Model {
         return this._state 
     }
 
+    /* 
+        Methods used by Elzeard itself for the framwork.
+        You won't need to access this method unless you are building
+        a package on top or an extension.
+    */
     public super = (): ISuper => {
         this._checkIfModelIsDestroyed()
 
+        //returns the JoiXSQL schema of the collection (includes the Joi object)
         const schemaSpecs = () => {
             const modelSchema = (option().nodeModel() as any).schema
             const ecosystem = (config.ecosystem() as Ecosystem)
@@ -70,18 +75,20 @@ export default class Model {
         }
     }
 
+    //returns SQL methods
     public sql = () => {
         this._checkIfModelIsDestroyed()
         return this.super().option().get().sql as SQLManager
     }
     
+    //returns data rendering methods
     public to = () => {
         this._checkIfModelIsDestroyed()
         return to(this)
     }
 
-    constructor(state: any, model: Constructor<Model>, ...option: any){
-        this._option = new OptionManager(this, Object.assign({}, ...option, {nodeModel: model}))
+    constructor(state: any, model: Constructor<Model>, option: IOptions){
+        this._option = new OptionManager(this, Object.assign({}, option, {nodeModel: model}))
 
         if (!this.super().option().nodeModel().schema)
             throw errors.noSchema(this)
@@ -107,11 +114,13 @@ export default class Model {
         return this.new(this.state).super().fillPrevStateStore(this.super().prevStateStore)
     }
 
+    //Create a new Model based on the current one wit the state passed in parameters
     public new = (defaultState: any) => {
         this._checkIfModelIsDestroyed()
         return new (this.super().option().nodeModel())(defaultState, this.super().option().kids())
     }
 
+    //Save the Model's state into the Collection's table it is linked with
     public saveToDB = async () => {
         this._checkIfModelIsDestroyed()
         if (this.super().option().isKidsPassed()){
@@ -126,6 +135,7 @@ export default class Model {
             throw errors.noCollectionBinding(this)
     }
 
+    //Remove Model's state from table + disable Model class
     public destroy = async () => {
         this._checkIfModelIsDestroyed()
         try {
@@ -136,7 +146,7 @@ export default class Model {
         }
     }
 
-    //Only usable in a Model/State
+    //Update Model's state.
     public setState = (o = this.state, skipSchemaValidation?: boolean) => {
         this._checkIfModelIsDestroyed()
         if (!Model._isObject(o))
@@ -153,6 +163,7 @@ export default class Model {
         return this
     }
 
+    //Delete key/value in the state
     public deleteKey = (key: string) => {
         const newState = Object.assign({}, this.state)
         delete newState[key]
