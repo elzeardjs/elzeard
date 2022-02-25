@@ -65,6 +65,101 @@ schema.validate({});
 // -> { value: {}, error: '"username" is required' }
 ```
 
+<br />
+
+#### 3. **[Joi x SQL](https://github.com/elzeardjs/joixsql)** : Combination of both integrated in Elzeard
+
+Table and column management when iterating on a back-end application is an everyday task that can be removed with automation.
+
+<details><summary>Simple and practical example with Elzeard</summary>
+  
+```ts
+import { Joi, Collection, Model, config } from 'elzeard'
+
+config.setHistoryDirPath('./history')
+config.setMySQLConfig({
+  host: 'localhost',
+  user: 'user',
+  password: 'password',
+  database: 'database'
+})
+
+export class TodoModel extends Model {
+
+    static schema = Joi.object({
+        id: Joi.number().autoIncrement().primaryKey(),
+        content: Joi.string().min(1).max(400).default(''),
+        created_at: Joi.date().default(() => new Date()),
+    })
+
+    constructor(initialState: any, options: any){
+        super(initialState, TodoModel, options)
+    }
+
+    content = () => this.state.content
+    ID = () => this.state.id
+    createdAt = () => this.state.created_at
+}
+
+export class TodoCollection extends Collection {
+    constructor(initialState: any, options: any){
+        super(initialState, [TodoModel, TodoCollection], options)
+    }
+}
+
+const main = async () => {
+  const todolist = new TodoCollection([], {table: 'todos'})
+  await config.done()
+}
+
+main()
+```
+</details>
+
+<br />
+
+Run this code once:
+```sh
+yarn start
+```
+
+It will detect the schema and create the table accordingly if it doesn't exist yet.
+<details>
+<summary>See output</summary>
+<a>
+  <img src="https://siasky.net/FAACv7_cINZHSLE436FDYEpuF8p48Su6i9_NZaTLX1dttw" width="50%">
+</a>
+</details>
+
+<br />
+
+Now update the values the schema in the TodoModel class :
+```ts
+...
+export class TodoModel extends Model {
+
+    static schema = Joi.object({
+        id: Joi.number().autoIncrement().primaryKey(),
+        title: Joi.string().max(140).default(''),
+        content: Joi.string().min(1).max(400).default('This is a new content by default'),
+        created_at: Joi.date().default(() => new Date()),
+    })
+...
+```
+
+It will detect the schema change and build a table migration automatically.
+<details>
+<summary>See output</summary>
+<a>
+  <img src="https://siasky.net/NACRorvs5bzZHxP_l40l9zzNlj_97dW_p-dqwcdi2wdF8Q" width="50%">
+</a>
+</details>
+<details>
+<summary>See table description</summary>
+<a>
+  <img src="https://siasky.net/XADtqS4-UCeawz5Xu6Bq5dPQyLqOLFItjch3d4pWBJwkEA" width="75%">
+</a>
+</details>
 
 
 
