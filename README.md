@@ -19,10 +19,12 @@
 
 Elzeard is a OOP data manager built on top of **[Knex](https://github.com/knex/knex)**, and **[Joi](https://joi.dev/api/?v=17.6.0)** : Two **main** JS libraries when it's about **maintaining code organization** and **securizing** back-end apps.
 
+⚠️ The current version **only** works with a **MySQL/Maria database**
+
 <br />
 
 
-#### 1. **[Knex](https://github.com/knex/knex)** : SQL query builder
+#### 1. Quick intro with **[Knex](https://github.com/knex/knex)** : SQL query builder
 
 Building SQL queries is an annoying and redundant task. Knex answers to that problem by greatly symplifying the query building process:
 
@@ -38,7 +40,7 @@ knex('users').where('id', 1)
 
 <br />
 
-#### 2. **[Joi](https://joi.dev/api/?v=17.6.0)** : Schema descriptor and data validator
+#### 2. Quick intro with **[Joi](https://joi.dev/api/?v=17.6.0)** : Schema descriptor and data validator
 
 - Data formating + treating
 - Rendering errors when needed (ex: POST/PUT req in an API) 
@@ -67,7 +69,7 @@ schema.validate({});
 
 <br />
 
-#### 3. **[Joi x SQL](https://github.com/elzeardjs/joixsql)** : Combination of both integrated in Elzeard
+#### 3. Quick intro with **[Joi x SQL](https://github.com/elzeardjs/joixsql)** : Combination of both integrated in Elzeard
 
 Table and column management when iterating on a back-end application is an everyday task that can be removed with automation.
 We did it, and it is one of the main feature of Elzeard.
@@ -75,8 +77,11 @@ We did it, and it is one of the main feature of Elzeard.
 Quick example [here](https://github.com/elzeardjs/table-automation-example)
 
 
+<br />
 
+<br />
 
+<br />
 
 <br />
 
@@ -85,5 +90,64 @@ Quick example [here](https://github.com/elzeardjs/table-automation-example)
 <br />
 
 
+<p align="center">
+  <a target="_blank" href="https://github.com/arysociety/acey/blob/master/docs/api.md">
+    <img width="15%" src="https://siasky.net/CACTHjC4zAHYkDTKqu9kF54Oa0B82lwMWIwTAWmgi3MQiQ"/>
+  </a>
 
-*inspired from **[Acey](https://github.com/AceyJS/acey)** (OOP State Manager)*
+  <img width="5%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
+  
+  <a href="#get-started">
+    <img width="15%" src="https://siasky.net/EABzcACQz3Xj32CtjaVgNBM56fJgUPm0RTMkYZF7uysKwQ"/>
+  </a>
+
+  <img width="5%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
+
+  <a target="_blank" href="https://github.com/arysociety/acey-examples">
+    <img width="15%" src="https://siasky.net/EAABjRbonXUkzrt1jQ1yEVr--jLoMP4zxgPY7j_TRgSzlA"/>
+  </a>
+</p>
+
+<br />
+
+<br />
+
+<br />
+
+<br />
+
+
+
+
+# Get Started
+## Usage
+
+```
+yarn add elzeard
+```
+
+<br />
+
+After all your collections have been instanced, set your configuration and make it 'done':
+
+```js
+import { config } from 'elzeard'
+import MyCollection1 from './my-collection-1'
+import MyCollection2 from './my-collection-2'
+import { startServer } from './server'
+...
+
+const myCollect1 = new MyCollection1([], {table: 'collection-1'})
+const myCollect2 = new MyCollection2([], {table: 'collection-2'})
+...
+
+const initConfig = async () => {
+  await config.done()
+  ...
+}
+
+initConfig()
+startServer()
+```
+
+
