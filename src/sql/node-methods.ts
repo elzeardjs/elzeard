@@ -38,7 +38,9 @@ export default (m: Model, collection: Collection) => {
         return await query.where(primary, jsonData[primary]).del()
     }
 
-    const fetch = async () => await format.toModel(await query.where(jsonData).first())
+    const fetch = async () => {
+        return await format.toModel(await query.where(convertAllDateToISOString(jsonData)).first())
+    }
 
     return { insert, update, delete: remove, fetch }
 }
