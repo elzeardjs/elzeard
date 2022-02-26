@@ -10,7 +10,7 @@ export default (collection: Collection) => {
 
     const byPrimary = async (value: string | number) => await queryRunner(query.where({[primary]: value}))
 
-    const all = async () => await query
+    const all = async () => collection.sql().table().truncate()
     const custom = async (callback: (q: QueryBuilder) => QueryBuilder) => await queryRunner(callback(query as QueryBuilder))
     const where = async (...value: any) => await queryRunner(query.where(...value))
     const whereNot = async (...value: any) => await queryRunner(query.whereNot(...value))

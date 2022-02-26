@@ -15,6 +15,7 @@ export default (collection: Collection) => {
     }
     const drop = async () => await SQLManager.mysql().schema.dropTableIfExists(name())
     const isCreated = () => async () => await SQLManager.isTableCreated(name())
+    const truncate = async () => await SQLManager.mysql().table(collection.super().option().table()).truncate()
 
-    return { create, drop, isCreated, name, query }
+    return { create, drop, isCreated, name, query, truncate }
 }
