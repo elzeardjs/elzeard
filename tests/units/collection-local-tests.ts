@@ -88,6 +88,64 @@ export default async () => {
             expect((p.local().nodeAt(6) as PostModel).content()).to.eq(CONTENT_SPECIAL)
             expect(() => p.local().append({content: CONTENT_SPECIAL})).to.throw(Error)
             expect(() => p.local().append({content: '', user: 1})).to.throw(Error)
+
+            p.local().append({content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL, user: 1})
+            expect(p.local().count()).to.eq(9)
+            expect(() => p.local().append({content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL})).to.throw(Error)
+            expect(p.local().count()).to.eq(9)
+
         })
+
+        it('chunk', async () => {
+            const p = await posts.quick().pull().run()
+            const co1 = p.local().chunk(2)
+            expect(co1.length).to.eq(3)
+            expect(co1[0].local().count()).to.eq(2)
+            expect(co1[1].local().count()).to.eq(2)
+            expect(co1[2].local().count()).to.eq(2)
+
+            const co2 = p.local().chunk(3)
+            expect(co2.length).to.eq(2)
+            expect(co2[0].local().count()).to.eq(3)
+            expect(co2[1].local().count()).to.eq(3)
+
+            const co3 = p.local().chunk(4)
+            expect(co3.length).to.eq(2)
+            expect(co3[0].local().count()).to.eq(4)
+            expect(co3[1].local().count()).to.eq(2)
+        })
+
+        it('concat', async () => {
+            const p = await posts.quick().pull().run()
+            p.local().concat([{content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL, user: 5}])
+            expect(p.local().count()).to.eq(8)
+            expect((p.local().nodeAt(6) as PostModel).content()).to.eq(CONTENT_SPECIAL)
+            expect((p.local().nodeAt(7) as PostModel).content()).to.eq(CONTENT_SPECIAL)
+            expect(() => p.local().concat([{content: CONTENT_SPECIAL}])).to.throw(Error)
+            expect(() => p.local().append([{content: '', user: 1}])).to.throw(Error)
+        })
+
+        it('count', () => null)
+
+        it('find', async () => {
+            const p = await posts.quick().pull().run()
+
+            const m = p.local().find((m: PostModel) => {
+                return m.content() === '3_CONTENT_1'
+            }) as PostModel
+            expect(m.content()).to.eq('3_CONTENT_1')
+
+            const m2 = p.local().find({content: '3_CONTENT_1'}) as PostModel
+            expect(m2.content()).to.eq('3_CONTENT_1')
+
+            const m3 = p.local().find((m: PostModel) => {
+                return m.content() === 'bullshit'
+            }) as PostModel
+            expect(m3).to.eq(undefined)
+
+            const m4 = p.local().find({content: 'bullshit'}) as PostModel
+            expect(m4).to.eq(undefined)
+        })
+
     })
 }
