@@ -15,7 +15,7 @@ export default async () => {
             await todos.sql().table().create()
             isCreated = await todos.sql().table().isCreated()
             expect(isCreated).to.eq(true)        
-            await todos.local().push({content: 'hey'}).saveToDB()
+            await todos.ctx().local().push({content: 'hey'}).saveToDB()
             expect(await todos.sql().count().all()).to.eq(1)
             await todos.sql().table().truncate()
             expect(await todos.sql().count().all()).to.eq(0)

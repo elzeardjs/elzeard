@@ -15,7 +15,7 @@ import updateMethods from './update-methods'
 
 export default class SQLManager {
 
-    static isTableCreated = async (tableName: string) => await SQLManager.mysql().schema.hasTable(tableName)
+    static isTableCreated = (tableName: string) => SQLManager.mysql().schema.hasTable(tableName)
     static mysql = (): knex<any, unknown[]> => config.mysqlConnexion()
     public knex = (): knex<any, unknown[]> => config.mysqlConnexion()
 
