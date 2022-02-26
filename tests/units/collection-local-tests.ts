@@ -88,12 +88,13 @@ export default async () => {
             expect((p.local().nodeAt(6) as PostModel).content()).to.eq(CONTENT_SPECIAL)
             expect(() => p.local().append({content: CONTENT_SPECIAL})).to.throw(Error)
             expect(() => p.local().append({content: '', user: 1})).to.throw(Error)
+            expect(p.local().count()).to.eq(7)
+
 
             p.local().append({content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL, user: 1})
             expect(p.local().count()).to.eq(9)
             expect(() => p.local().append({content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL})).to.throw(Error)
             expect(p.local().count()).to.eq(9)
-
         })
 
         it('chunk', async () => {
@@ -261,7 +262,163 @@ export default async () => {
             expect((p.local().nodeAt(5) as PostModel).ID()).to.eq(6)
             expect((p.local().nodeAt(6))).to.eq(undefined)
         })
-        
+
+        it('nth', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect((p.local().nth(1) as PostModel).ID()).to.eq(2)
+            expect((p.local().nth(-1) as PostModel).ID()).to.eq(6)
+            expect((p.local().nth(-2) as PostModel).ID()).to.eq(5)
+            expect((p.local().nth(2) as PostModel).ID()).to.eq(3)
+        })
+
+        it('offset', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().offset(3).count()).to.eq(3)
+            expect(p.local().offset(2).count()).to.eq(4)
+            expect(p.local().offset(6).count()).to.eq(0)
+            expect(p.local().offset(7).count()).to.eq(0)
+        })
+
+        it('orderBy', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().orderBy('id', 'asc').local().arrayOf('id').toString()).to.eq([1,2,3,4,5,6].toString())
+            expect(p.local().orderBy('id', 'desc').local().arrayOf('id').toString()).to.eq([6,5,4,3,2,1].toString())
+        })
+
+        it('pop', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().count()).to.equal(6)
+            expect((p.local().nodeAt(5) as PostModel).ID()).to.eq(6)
+            p.local().pop()
+            expect(p.local().count()).to.equal(5)
+            expect((p.local().nodeAt(4) as PostModel).ID()).to.eq(5)
+        })
+
+        it('prepend', async () => {
+            const p = await posts.quick().pull().run()
+            p.local().prepend({content: CONTENT_SPECIAL, user: 1})
+            expect(p.local().count()).to.eq(7)
+            expect((p.local().nodeAt(0) as PostModel).content()).to.eq(CONTENT_SPECIAL)
+
+            expect(() => p.local().prepend({content: CONTENT_SPECIAL})).to.throw(Error)
+            expect(() => p.local().prepend({content: '', user: 1})).to.throw(Error)
+            expect(p.local().count()).to.eq(7)
+
+            p.local().prepend({content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL, user: 1})
+            expect(p.local().count()).to.eq(9)
+            expect(() => p.local().prepend({content: CONTENT_SPECIAL, user: 1}, {content: CONTENT_SPECIAL})).to.throw(Error)
+            expect(p.local().count()).to.eq(9)
+        })
+
+        it('push', async () => {
+            const p = await posts.quick().pull().run()
+            p.local().push({content: CONTENT_SPECIAL, user: 1})
+            expect(p.local().count()).to.eq(7)
+            expect((p.local().nodeAt(6) as PostModel).content()).to.eq(CONTENT_SPECIAL)
+            expect(() => p.local().push({content: CONTENT_SPECIAL})).to.throw(Error)
+            expect(() => p.local().push({content: '', user: 1})).to.throw(Error)
+            expect(p.local().count()).to.eq(7)
+        })
+
+        it('reduce', async () => {
+            const p = await posts.quick().pull().run()
+            const ret = p.local().reduce((total: number, node: PostModel) => total += node.ID(), 0)
+            expect(ret).to.eq(1+2+3+4+5+6)
+        })
+
+        it('remove', async () => {
+            const p = await posts.quick().pull().run()
+            
+            expect(!!(p.local().find({content: '3_CONTENT_1'})) ).to.eq(true)
+            p.local().remove((m: PostModel) => {
+                return m.content() === '3_CONTENT_1'
+            })
+            expect(!!(p.local().find({content: '3_CONTENT_1'})) ).to.eq(false)
+            expect(p.local().count()).to.eq(5)
+
+            expect(!!(p.local().find({content: '1_CONTENT_1'})) ).to.eq(true)
+            p.local().remove({content: '1_CONTENT_1'})
+            expect(!!(p.local().find({content: '1_CONTENT_1'})) ).to.eq(false)
+            expect(p.local().count()).to.eq(4)
+            
+            p.local().remove((m: PostModel) => {
+                return m.content() === 'bullshit'
+            })
+            expect(p.local().count()).to.eq(4)
+            p.local().remove({content: 'bullshit'})
+            expect(p.local().count()).to.eq(4)
+        })
+
+        it('removeAll', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().count()).to.eq(6)
+            expect(!!(p.local().find({content: '3_CONTENT_1'})) ).to.eq(true)
+            expect(!!(p.local().find({content: '1_CONTENT_1'})) ).to.eq(true)
+            p.local().removeAll([{ content: '3_CONTENT_1'}, {content:'1_CONTENT_1'}, {content: 'bullshit'}])
+            expect(!!(p.local().find({content: '3_CONTENT_1'})) ).to.eq(false)
+            expect(!!(p.local().find({content: '1_CONTENT_1'})) ).to.eq(false)
+            expect(p.local().count()).to.eq(4)
+        })
+
+        it('removeBy', async () => {
+            const p = await posts.quick().pull().run()
+            
+            expect(p.local().count()).to.eq(6)
+            expect(!!(p.local().find({id: 1})) ).to.eq(true)
+            expect(!!(p.local().find({id: 2})) ).to.eq(true)
+            p.local().removeBy({ id: 1})
+            p.local().removeBy({ id: 2})
+            p.local().removeBy({ id: 7})
+            expect(p.local().count()).to.eq(4)
+            expect(!!(p.local().find({id: 1})) ).to.eq(false)
+            expect(!!(p.local().find({id: 2})) ).to.eq(false)
+        })
+
+        it('removeIndex', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().count()).to.eq(6)
+            expect((p.local().nodeAt(0) as PostModel).ID()).to.eq(1)
+            p.local().removeIndex(0)
+            expect(p.local().count()).to.eq(5)
+            expect((p.local().nodeAt(0) as PostModel).ID()).to.eq(2)
+            p.local().removeIndex(4)
+            expect(p.local().count()).to.eq(4)
+            expect((p.local().nodeAt(3) as PostModel).ID()).to.eq(5)
+            p.local().removeIndex(6)
+            expect(p.local().count()).to.eq(4)
+        })
+
+        it('reverse', async () => {
+            const p = await posts.quick().pull().run()
+            expect(p.local().arrayOf('id').toString() ).to.eq([1,2,3,4,5,6].toString())
+
+            expect(p.local().reverse().arrayOf('id').toString() ).to.eq([6,5,4,3,2,1].toString())
+        })
+
+        it('shift', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().count()).to.equal(6)
+            expect((p.local().nodeAt(0) as PostModel).ID()).to.eq(1)
+            p.local().shift()
+            expect(p.local().count()).to.equal(5)
+            expect((p.local().nodeAt(0) as PostModel).ID()).to.eq(2)
+        })
+
+        it('slice', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().slice(0, 2).arrayOf('id').toString()).to.eq([1,2].toString())
+            expect(p.local().slice(2, 4).arrayOf('id').toString()).to.eq([3,4].toString())
+            expect(p.local().slice(5, 7).arrayOf('id').toString()).to.eq([6].toString())
+        })
 
     })
+
 }
