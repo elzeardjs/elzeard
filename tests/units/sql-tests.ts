@@ -107,6 +107,43 @@ export default async () => {
             await todos.sql().remove().where({ content: CONTENT})
             expect(await todos.sql().count().all()).to.eq(1)
             await todos.sql().remove().where({ content: CONTENT_STUPID})
+            expect(await todos.sql().count().all()).to.eq(0)
+        })
+
+        it('Pull', async () => {
+            await todos.ctx().local().append(
+                { content: CONTENT },
+                { content: CONTENT_2 },
+                { content: CONTENT_3 },
+                { content: CONTENT_STUPID },
+                { content: CONTENT_STUPID },
+            ).saveToDB()
+            expect(await todos.sql().count().all()).to.eq(5)
+            
+            const pulledAll = await todos.ctx().sql().pull().all().run() as TodoList
+            expect(pulledAll.local().count()).to.eq(5)
+            const pulledOffset = await todos.ctx().sql().pull().all().offset(2).run() as TodoList
+            expect(pulledOffset.local().count()).to.eq(3)
+            const pulledLimit = await todos.ctx().sql().pull().all().limit(2).run() as TodoList
+            expect(pulledLimit.local().count()).to.eq(2)
+            const pulledOffsetAndLimit = await todos.ctx().sql().pull().all().limit(2).offset(4).run() as TodoList
+            expect(pulledOffsetAndLimit.local().count()).to.eq(1)
+            const pulledOffsetAndLimit2 = await todos.ctx().sql().pull().all().limit(3).offset(1).run() as TodoList
+            expect(pulledOffsetAndLimit2.local().count()).to.eq(3)
+
+            const pulledParam = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).run() as TodoList
+            expect(pulledParam.local().count()).to.eq(2)
+            const pulledParamOffset = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).offset(1).run() as TodoList
+            expect(pulledParamOffset.local().count()).to.eq(1)
+            const pulledParamOffset2 = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).offset(2).run() as TodoList
+            expect(pulledParamOffset2.local().count()).to.eq(0)
+            const pulledParamLimit = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).limit(1).run() as TodoList
+            expect(pulledParamLimit.local().count()).to.eq(1)
+            const pulledParamLimit2 = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).limit(3).run() as TodoList
+            expect(pulledParamLimit2.local().count()).to.eq(2)
+
+            const pulledParamOffsetAndLimit = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).offset(1).limit(2).run() as TodoList
+            expect(pulledParamOffsetAndLimit.local().count()).to.eq(1)
         })
     })
 }
