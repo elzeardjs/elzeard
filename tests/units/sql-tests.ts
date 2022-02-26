@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { TodoModel, todos } from './data'
+import { TodoList, TodoModel, todos } from './data'
 
 export default async () => {
 
@@ -41,6 +41,35 @@ export default async () => {
             expect(await todos.sql().count().all()).to.eq(0)
         })  
 
+        it('List', async () => {
+            const CONTENT = 'content_1'
+            const CONTENT_2 = 'content_2'
+            const CONTENT_3 = 'content_3'
+
+            const list: TodoModel[] = []
+            list.push(new TodoModel({ content: CONTENT}, {}))
+            list.push(new TodoModel({ content: CONTENT_2}, {}))
+            await todos.sql().list(list).insert()
+            expect(await todos.sql().count().all()).to.eq(2)
+            list[0].setState({content: 'LOL'})
+            await todos.sql().list(list).update()
+            expect(await todos.sql().count().all()).to.eq(2)
+            const todosPulled = await todos.ctx().sql().pull().all().run() as TodoList
+            expect(todosPulled.local().count()).to.eq(2)
+            expect((todosPulled.local().nodeAt(0) as TodoModel).content()).to.eq('LOL')
+            expect((todosPulled.local().nodeAt(1) as TodoModel).content()).to.eq(CONTENT_2)
+            list[0].setState({content: CONTENT})
+            list[1].setState({content: 'LOL'})
+            list.push(new TodoModel({ content: CONTENT_3}, {}))
+            await todos.sql().list(list).update()
+            expect(await todos.sql().count().all()).to.eq(3)
+            expect(list[2].ID()).to.eq(4)
+            const todosPulled2 = await todos.ctx().sql().pull().all().run() as TodoList
+            expect(todosPulled2.local().count()).to.eq(3)
+            expect((todosPulled2.local().nodeAt(0) as TodoModel).content()).to.eq(CONTENT)
+            expect((todosPulled2.local().nodeAt(1) as TodoModel).content()).to.eq('LOL')
+            expect((todosPulled2.local().nodeAt(2) as TodoModel).content()).to.eq(CONTENT_3)
+        })
         
 
     })

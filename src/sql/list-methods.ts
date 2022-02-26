@@ -32,7 +32,7 @@ export default (list: Model[], collection: Collection) => {
 
         for (let i = 0; i < res.length; i++){
             const { insertId } = res[i][0]
-            insertId !== list[i].state[primary] && list[i].setState({[primary]: insertId})
+            insertId != 0 && insertId !== list[i].state[primary] && list[i].setState({[primary]: insertId})
         }
         return res
     }
