@@ -147,5 +147,121 @@ export default async () => {
             expect(m4).to.eq(undefined)
         })
 
+        it('findIndex', async () => {
+            const p = await posts.quick().pull().run()
+            
+            const idx = p.local().findIndex((m: PostModel) => {
+                return m.content() === '3_CONTENT_1'
+            })
+            expect(idx).to.eq(5)
+            const idx2 = p.local().findIndex({content: '3_CONTENT_1'})
+            expect(idx2).to.eq(5)
+            const idx3 = p.local().findIndex({content: '2_CONTENT_2'})
+            expect(idx3).to.eq(3)
+            const idx4 = p.local().findIndex((m: PostModel) => {
+                return m.content() === 'bullshit'
+            })
+            expect(idx4).to.eq(-1)
+            const idx5 = p.local().findIndex({content: 'bullshit'})
+            expect(idx5).to.eq(-1)
+        })
+
+        it('filter', async () => {
+            const p = await posts.quick().pull().run()
+            const res = p.local().filter((m: PostModel) => {
+                return m.user().ID() === 2
+            })
+            expect(res.count()).to.eq(3)
+            expect((res.nodeAt(0) as PostModel).content()).to.eq('2_CONTENT_1')
+            expect((res.nodeAt(1) as PostModel).content()).to.eq('2_CONTENT_2')
+            expect((res.nodeAt(2) as PostModel).content()).to.eq('2_CONTENT_3')
+
+            const res2 = p.local().filter({content: '2_CONTENT_2'})
+            expect(res2.count()).to.eq(1)
+            expect((res2.nodeAt(0) as PostModel).content()).to.eq('2_CONTENT_2')
+
+            const res3 = p.local().filter((m: PostModel) => {
+                return m.user().ID() === 5
+            })
+            expect(res3.count()).to.eq(0)
+            const res4 = p.local().filter({content: 'bullshit'})
+            expect(res4.count()).to.eq(0)
+        })
+
+        it('filterIn', async () => {
+            const p = await posts.quick().pull().run()
+            const res = p.local().filterIn('content', ['2_CONTENT_1', '1_CONTENT_2', '3_CONTENT_1', 'bullshit'])
+            expect(res.count()).to.eq(3)
+            expect((res.nodeAt(0) as PostModel).content()).to.eq('1_CONTENT_2')
+            expect((res.nodeAt(1) as PostModel).content()).to.eq('2_CONTENT_1')
+            expect((res.nodeAt(2) as PostModel).content()).to.eq('3_CONTENT_1')
+
+            const res2 = p.local().filterIn('content', ['bullshit', 'sbfwefew'])
+            expect(res2.count()).to.eq(0)
+        })
+
+        it('first', async () => {
+            const p = await posts.quick().pull().run()
+
+            const m = p.local().first() as PostModel
+            expect(m.content()).to.eq('1_CONTENT_1')
+        })
+
+        it('forEach', async () => {
+            const p = await posts.quick().pull().run()
+            const arr = [1,2,3,4,5,6]
+            p.local().forEach((m: PostModel, i: number) => {
+                expect(m.ID()).to.eq(arr[i])
+            })
+        })
+
+        it('groupBy', async () => {
+            const p = await posts.quick().pull().run()
+            const o2 = p.local().groupBy((m: PostModel) => {
+                return m.user().ID()
+            })
+            expect(Object.keys(o2).length).to.eq(3)
+            expect(o2['1'].local().count()).to.eq(2)
+            expect(o2['2'].local().count()).to.eq(3)
+            expect(o2['3'].local().count()).to.eq(1)
+
+            const o = p.local().groupBy('id')
+            expect(Object.keys(o).length).to.eq(6)
+            expect(o['1'].local().count()).to.eq(1)
+            expect(o['2'].local().count()).to.eq(1)
+            expect(o['3'].local().count()).to.eq(1)
+            expect(o['4'].local().count()).to.eq(1)
+            expect(o['5'].local().count()).to.eq(1)
+            expect(o['6'].local().count()).to.eq(1)
+        })
+
+        it('last', async () => {
+            const p = await posts.quick().pull().run()
+            const m = p.local().last() as PostModel
+            expect(m.content()).to.eq('3_CONTENT_1')
+        })
+
+        it('limit', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(p.local().limit(3).count()).to.eq(3)
+            expect(p.local().limit(2).count()).to.eq(2)
+            expect(p.local().limit(6).count()).to.eq(6)
+            expect(p.local().limit(7).count()).to.eq(6)
+        })
+
+        it('map', async () => {
+            const p = await posts.quick().pull().run()
+            expect(p.local().map((m: PostModel) => m.ID()).toString()).to.eq([1,2,3,4,5,6].toString())
+        })
+
+        it('nodeAt', async () => {
+            const p = await posts.quick().pull().run()
+            expect((p.local().nodeAt(0) as PostModel).ID()).to.eq(1)
+            expect((p.local().nodeAt(5) as PostModel).ID()).to.eq(6)
+            expect((p.local().nodeAt(6))).to.eq(undefined)
+        })
+        
+
     })
 }
