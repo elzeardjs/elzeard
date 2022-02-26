@@ -13,7 +13,7 @@
 
 <br />
 
-# Build complex node apps with as much code as efforts. 🌿
+# OOP Data Manager based on Knex and Joi. 🌿
 
 ## Introduction
 
