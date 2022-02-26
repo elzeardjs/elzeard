@@ -64,13 +64,27 @@ export default async () => {
             await todos.sql().list(list).update()
             expect(await todos.sql().count().all()).to.eq(3)
             expect(list[2].ID()).to.eq(4)
+            
             const todosPulled2 = await todos.ctx().sql().pull().all().run() as TodoList
             expect(todosPulled2.local().count()).to.eq(3)
             expect((todosPulled2.local().nodeAt(0) as TodoModel).content()).to.eq(CONTENT)
             expect((todosPulled2.local().nodeAt(1) as TodoModel).content()).to.eq('LOL')
             expect((todosPulled2.local().nodeAt(2) as TodoModel).content()).to.eq(CONTENT_3)
+
+            const todosPulled3 = await todos.sql().list(list.slice(0, 2)).pull()
+            expect(todosPulled3.local().count()).to.eq(2)
+            expect((todosPulled3.local().nodeAt(0) as TodoModel).content()).to.eq(CONTENT)
+            expect((todosPulled3.local().nodeAt(1) as TodoModel).content()).to.eq('LOL')
+
+            const count = await todos.sql().list(list.slice(0, 2)).remove()
+            expect(count).to.eq(2)
+            expect(await todos.sql().count().all()).to.eq(1)
+            const todosPulled4 = await todos.ctx().sql().pull().all().run() as TodoList
+            expect(todosPulled4.local().count()).to.eq(1)
+            expect((todosPulled4.local().nodeAt(0) as TodoModel).content()).to.eq(CONTENT_3)
         })
-        
+
+
 
     })
 }
