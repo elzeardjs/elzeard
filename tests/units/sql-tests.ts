@@ -193,12 +193,6 @@ export default async () => {
             expect(pulledW.local().count()).to.eq(1)
             const pulledW2 = await todos.quick().pull({'content': CONTENT}).run() as TodoList
             expect(pulledW2.local().count()).to.eq(0)
-
-
-            
-
         })
-
-
     })
 }

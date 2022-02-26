@@ -1,6 +1,7 @@
 import  { config } from '../../index'
 import runInitTests from './init-tests'
 import runDefaultTests from './default-tests'
+import runCollectionLocalTests from './collection-local-tests'
 import runSQLTests from './sql-tests'
 
 const SQL_CONFIG = {
@@ -17,8 +18,9 @@ const main = async () => {
     config.setMySQLConfig(SQL_CONFIG)
     config.setHistoryDirPath(HISTORY_FOLDER)
     runInitTests(HISTORY_FOLDER)
-    runSQLTests()
-//    runDefaultTests(false)
+    runCollectionLocalTests()
+    // runSQLTests()
+    // runDefaultTests(false)
 }
 
 main()

@@ -1,5 +1,6 @@
 import { manager  } from '../../index'
 import { todos, chats, messages, posts, devices, users, spots, specificUsers, } from './data'
+import { users as users2, posts as posts2 } from './collection-local-tests'
 import fs from 'fs'
 import  { config } from '../../index'
 
@@ -23,6 +24,8 @@ export default async (HISTORY_FOLDER: string) => {
             await config.mysqlConnexion().schema.dropTableIfExists(todos.super().option().table())
             await config.mysqlConnexion().schema.dropTableIfExists(specificUsers.super().option().table())
             await config.mysqlConnexion().schema.dropTableIfExists(spots.super().option().table())
+            await config.mysqlConnexion().schema.dropTableIfExists(users2.super().option().table())
+            await config.mysqlConnexion().schema.dropTableIfExists(posts2.super().option().table())
             await config.mysqlConnexion().raw('SET foreign_key_checks = 1;')
         })
     
