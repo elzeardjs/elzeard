@@ -175,8 +175,8 @@ export default class LocalManager {
         return ret
     }
 
-    //return the index of the element passed in parameters if it exists in the list.
-    public indexOf = (v: any): number => findIndex(this.to().plain(), this.parent().newNode(v).to().plain())
+    //synonyme fn for findIndex
+    public indexOf = (predicate: TPredicatePickNode) => this.findIndex(predicate)
 
     public last = (): Model | undefined => this.nodeAt(this.count() - 1)
 
@@ -233,7 +233,7 @@ export default class LocalManager {
 
     //delete a node if it exists in the list.
     public remove = (v: any): this => {
-        const index = this.indexOf(v)
+        const index = this.findIndex(v)
         const list = this.state.slice()
         if (index > -1){
             const v = list.splice(index, 1)
@@ -248,7 +248,7 @@ export default class LocalManager {
 
     public removeAll = (list: any[] = this.state): this => {
         let count = 0;
-        list.map((e: any) => this.indexOf(e) != -1 && this.remove(e) && count++)
+        list.map((e: any) => this.findIndex(e) != -1 && this.remove(e) && count++)
         this.setManipulationResult(count)
         return this
     }
