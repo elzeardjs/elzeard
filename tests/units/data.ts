@@ -1,4 +1,4 @@
-import { Model, Joi, Collection } from '../../../index'
+import { Model, Joi, Collection } from '../../index'
 import Knex from 'knex'
 
 export class DeviceModel extends Model {
@@ -164,7 +164,6 @@ export class TodoModel extends Model {
         id: Joi.number().autoIncrement().primaryKey(),
         content: Joi.string().min(1).max(400).default(''),
         created_at: Joi.date().default(() => new Date()),
-        user: Joi.number().foreignKey('users', 'id')
     })
 
     constructor(initialState: any, options: any){
@@ -176,7 +175,6 @@ export class TodoModel extends Model {
     createdAt = () => this.state.created_at
 
     updateContent = (content: string) => this.setState({content}).saveToDB()
-
 }
 
 export class ChatList extends Collection {
