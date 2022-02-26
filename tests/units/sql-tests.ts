@@ -8,6 +8,7 @@ export default async () => {
     const CONTENT_2 = 'content_2'
     const CONTENT_3 = 'content_3'
     const CONTENT_STUPID = 'STUPID'
+    const CONTENT_WEIRD = 'weird.....'
 
     describe('SQL Methods', () => {
         it('Table', async () => {
@@ -163,5 +164,41 @@ export default async () => {
             expect(w).to.not.eq(null)
             expect(w.content()).to.eq(CONTENT_2)
         })
+
+        it('Quick methods', async () => {
+            await todos.sql().remove().all()
+            expect(await todos.sql().count().all()).to.eq(0)
+            await todos.quick().create({content: CONTENT_WEIRD})
+            expect(await todos.sql().count().all()).to.eq(1)
+    
+            const l = await todos.quick().find({'content': CONTENT_WEIRD}) as TodoModel
+            expect(l).to.not.eq(null)
+            expect(l.content()).to.eq(CONTENT_WEIRD)
+    
+            await todos.quick().update({content: CONTENT}, {id: l.ID()})
+            const l2 = await todos.quick().find({'content': CONTENT}) as TodoModel
+            expect(l2).to.not.eq(null)
+            expect(l2.content()).to.eq(CONTENT)
+
+            await todos.quick().update({content: CONTENT_WEIRD})
+            const l3 = await todos.quick().find({'content': CONTENT_WEIRD}) as TodoModel
+            expect(l3).to.not.eq(null)
+            expect(l3.content()).to.eq(CONTENT_WEIRD)
+
+            expect(todos.quick().test({content: 'Hello'})).to.eq(undefined)
+
+            const pulledAll = await todos.quick().pull().run() as TodoList
+            expect(pulledAll.local().count()).to.eq(1)
+            const pulledW = await todos.quick().pull({'content': CONTENT_WEIRD}).run() as TodoList
+            expect(pulledW.local().count()).to.eq(1)
+            const pulledW2 = await todos.quick().pull({'content': CONTENT}).run() as TodoList
+            expect(pulledW2.local().count()).to.eq(0)
+
+
+            
+
+        })
+
+
     })
 }
