@@ -15,15 +15,7 @@ export default (list: Model[], collection: Collection) => {
     const jsonData: any[] = list.map((elem) => convertAllDateToISOString(elem.to().plainUnpopulated() ))
     const arrayIDs = collection.new(list).local().to().arrayPrimary()
 
-    const isArrayModel = () => {
-        if (list.length == 0)
-            return true
-        if (list[0] instanceof Model)
-            return true
-        return false
-    }
-
-    const insert = async () => await update()
+    const insert = () => update()
 
     const update = async () => {
         if (isEmpty(jsonData))
@@ -37,16 +29,8 @@ export default (list: Model[], collection: Collection) => {
         return res
     }
 
-    const remove = async () => {
-        if (!isArrayModel())
-            throw Errors.modelArrayOnly()
-        return await query.whereIn(primary, arrayIDs).del()
-    }
-    const pull = async () => {
-        if (!isArrayModel())
-            throw Errors.modelArrayOnly()
-        return await format.toCollection(await query.whereIn(primary, arrayIDs))
-    }
+    const remove = async () => await query.whereIn(primary, arrayIDs).del()
+    const pull = async () => await format.toCollection(await query.whereIn(primary, arrayIDs))
     
     return { remove, update, insert, pull, query }
 
