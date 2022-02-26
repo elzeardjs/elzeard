@@ -145,5 +145,23 @@ export default async () => {
             const pulledParamOffsetAndLimit = await todos.ctx().sql().pull().where({content: CONTENT_STUPID}).offset(1).limit(2).run() as TodoList
             expect(pulledParamOffsetAndLimit.local().count()).to.eq(1)
         })
+
+        it('Find', async () => {
+            const f = await todos.sql().find().firstBy('created_at') as TodoModel
+            expect(f).to.not.eq(null)
+            expect(f.content()).to.eq(CONTENT)
+
+            const l = await todos.sql().find().lastBy('id') as TodoModel
+            expect(l).to.not.eq(null)
+            expect(l.content()).to.eq(CONTENT_STUPID)
+
+            const p = await todos.sql().find().byPrimary(4) as TodoModel
+            expect(p).to.not.eq(null)
+            expect(p.content()).to.eq(CONTENT_3)
+
+            const w = await todos.sql().find().where({content: CONTENT_2}) as TodoModel
+            expect(w).to.not.eq(null)
+            expect(w.content()).to.eq(CONTENT_2)
+        })
     })
 }
