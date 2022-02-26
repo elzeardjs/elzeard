@@ -74,7 +74,7 @@ schema.validate({});
 Table and column management when iterating on a back-end application is an everyday task that can be removed with automation.
 We did it, and it is one of the main feature of Elzeard.
 
-Quick example [here](https://github.com/elzeardjs/table-automation-example)
+Quick example [here](https://github.com/elzeardjs/joixsql/tree/master/example)
 
 
 <br />
