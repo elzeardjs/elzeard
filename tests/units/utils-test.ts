@@ -470,15 +470,42 @@ export default async () => {
             expect(p21.community).to.eq(1)
         })
 
-        it('saveToDB on Model', async () => {
+        it('saveToDB and destroy on Model', async () => {
+            await users.ctx().quick().create({
+                username: 'third', access_token: '4ed99687-a3c9-463d-b990-76942ed18fa6'
+            })
+            const t = await tweets.ctx().quick().create({
+                content: 'Im neutral about elzeard', user: 3, community: 1
+            }) as TweetModel
 
-        
+            expect(await tweets.quick().count()).to.eq(3)
+            await t.destroy()
+            expect(() => t.setState()).to.throw(Error)
+            expect(await tweets.quick().count()).to.eq(2)
+
+            await tweets.ctx().quick().create({
+                content: 'Im neutral about elzeard', user: 3, community: 1
+            }) as TweetModel
+
+            const t2 = await tweets.quick().find(4) as TweetModel
+            expect(t2.content()).to.eq('Im neutral about elzeard')
+            t2.setState({ content: 'This is a crazy shit'})
+            await t2.saveToDB()
+            const t3 = await tweets.quick().find(4) as TweetModel
+            expect(t3.content()).to.eq('This is a crazy shit')
         })
 
         it('saveToDB on Collection', async () => {
+            const list = await tweets.quick().pull().run()
+            expect(list.local().count()).to.eq(3)
 
+            list.local().nodeAt(0)?.setState({content: 'Fuck that man'})
+            list.local().removeIndex(2)
+            await list.local().saveToDB()
+            const freshList = await tweets.quick().pull().run()
+            expect(freshList.local().count()).to.eq(2)
+            expect((freshList.local().nodeAt(0) as TweetModel).content()).to.eq('Fuck that man')
+            expect((freshList.local().nodeAt(1) as TweetModel).content()).to.eq('I dont like elzeard')
         })
-
-
     })
 }

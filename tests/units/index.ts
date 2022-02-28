@@ -19,10 +19,10 @@ const main = async () => {
     config.setMySQLConfig(SQL_CONFIG)
     config.setHistoryDirPath(HISTORY_FOLDER)
     runInitTests(HISTORY_FOLDER)
-    // runCollectionLocalTests()
-    // runSQLTests()
+    runCollectionLocalTests()
+    runSQLTests()
     runUtilTests()
-    // runDefaultTests(false)
+    runDefaultTests(false)
 }
 
 main()
