@@ -236,6 +236,7 @@ export class TodoList extends Collection {
     }
 }
 
+
 export class UserList extends Collection {
     constructor(initialState: any, options: any){
         super(initialState, [UserModel, UserList], options)
