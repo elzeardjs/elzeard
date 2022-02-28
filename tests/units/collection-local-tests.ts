@@ -475,8 +475,30 @@ export default async () => {
             expect(p.local().to().string()).to.eq(bef)
         })
 
-        
+        it('uniq', async () => {
+            const p = await posts.quick().pull().run()
+            const ret = p.local().uniq().parent()
+            expect(ret.local().count()).to.eq(6)
+            
+            const first = p.local().first()
+            p.local().push(first?.to().plain())
+            expect(p.local().count()).to.eq(7)
+            const c = p.local().uniq().count()
+            expect(c).to.eq(6)
+        })
 
+        it('uniqBy', async () => {
+            const p = await posts.quick().pull().run()
+            expect(p.local().count()).to.eq(6)
+
+            const o = p.local().uniqBy((m: PostModel)=>{
+                return m.user().ID()
+            })
+            expect(o.local().count()).to.eq(3)
+            p.local().unpopulate()
+            const t = p.local().uniqBy('user')
+            expect(t.local().count()).to.eq(3)
+        })
     })
 
 }
