@@ -419,6 +419,64 @@ export default async () => {
             expect(p.local().slice(5, 7).arrayOf('id').toString()).to.eq([6].toString())
         })
 
+        it('splice', async () => {
+            const p = await posts.quick().pull().run()
+
+            p.local().splice(6)
+            expect(p.local().count()).to.eq(6)
+            p.local().splice(5)
+            expect(p.local().count()).to.eq(5)
+            expect(() => p.local().splice(0, -1, {content: '', user: 1})).to.throw(Error)
+            expect(() => p.local().splice(0, -1, {content: 'Geg'})).to.throw(Error)
+            p.local().splice(0, -1, {content: 'Yo', user: 1}, {content: 'Mike', user: 1})
+            expect((p.local().nodeAt(0) as PostModel).content()).to.eq('Yo')
+            expect((p.local().nodeAt(1) as PostModel).content()).to.eq('Mike')
+            expect(p.local().count()).to.eq(7)
+            p.local().splice(2, 3)
+            expect(p.local().count()).to.eq(4)
+        })
+
+        it('updateAll', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(() => p.local().updateAll({ content: ''})).to.throw(Error)
+            p.local().updateAll({content: 'YS!'})
+            p.local().forEach((m: PostModel) => {
+                expect(m.content()).to.eq("YS!")
+            })
+        })
+
+        it('updateAt', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(() => p.local().updateAt({ content: ''}, 0)).to.throw(Error)
+            p.local().updateAt({content: 'YS!', user: 1}, 0)
+            expect((p.local().nodeAt(0) as PostModel).content()).to.eq('YS!')
+        })
+
+        it('updateWhere', async () => {
+            const p = await posts.quick().pull().run()
+
+            expect(!!(p.local().find({content: '2_CONTENT_1'})) ).to.eq(true)
+            expect(!!(p.local().find({content: CONTENT_SPECIAL})) ).to.eq(false)
+            p.local().updateWhere({
+                content: '2_CONTENT_1'
+            }, {content: CONTENT_SPECIAL})
+            expect(!!(p.local().find({content: '2_CONTENT_1'})) ).to.eq(false)
+            expect(!!(p.local().find({content:CONTENT_SPECIAL  })) ).to.eq(true)
+            expect(() => p.local().updateWhere({
+                content: CONTENT_SPECIAL
+            }, {content: ''})).to.throw(Error)
+            
+            const bef = p.local().to().string()
+            p.local().updateWhere({
+                content: 'bullshit'
+            }, {content: CONTENT_SPECIAL})
+            expect(p.local().to().string()).to.eq(bef)
+        })
+
+        
+
     })
 
 }

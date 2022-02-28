@@ -232,7 +232,7 @@ export default class LocalManager {
 
 
     //delete a node if it exists in the list.
-    public remove = (v: any): this => {
+    public remove = (v: TPredicatePickNode): this => {
         const index = this.findIndex(v)
         const list = this.state.slice()
         if (index > -1){
@@ -323,7 +323,7 @@ export default class LocalManager {
             if (!this.parent().super().is().nodeModel(items[i]) && !Model._isObject(items[i]))
                 throw new Error("items parameter must be an Objet or the same Model than collection's nodes")
             else 
-                items[i] = this.parent().newNode(items[i])
+                items[i] = this.parent().newNode(items[i]).mustValidateSchema()
         }
 
         return internalSplice(start, deleteCount, ...items)
