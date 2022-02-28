@@ -386,5 +386,99 @@ export default async () => {
             expect(l.tweet().community().user().createdAt() instanceof Date ).to.eq(true)
             expect(l.tweet().community().user().accessToken()).to.eq('9e163f1d-5d54-4198-a614-32798ace74d5')
         })
+
+        it('Test populate and unpopulate on Collection', async () => {
+            await users.ctx().quick().create({
+                username: 'second', access_token: 'df0ef1e9-c45f-4093-911f-741f4b222a1e'
+            })
+            await tweets.ctx().quick().create({
+                content: 'I dont like elzeard', user: 2, community: 1
+            })
+
+            const list = await tweets.quick().pull().run()
+
+            expect(list.super().is().populated()).to.eq(true)
+            expect(list.super().is().populatable()).to.eq(true)
+            expect(list.super().is().unpopulated()).to.eq(false)
+
+            const plain = list.local().to().plain()
+            expect(plain.length).to.eq(2)
+
+            const p0 = plain[0]
+
+            expect(p0.id).to.eq(1)
+            expect(p0.content).to.eq('I love elzeard')
+            expect(p0.created_at instanceof Date).to.eq(true)
+
+            expect(p0.user.id).to.eq(1)
+            expect(p0.user.username).to.eq('fantasim')
+            expect(p0.user.created_at).to.eq(undefined)
+            expect(p0.user.access_token).to.eq(undefined)
+
+            expect(p0.community.id).to.eq(1)
+            expect(p0.community.name).to.eq('elzeard')
+            expect(p0.community.description).to.eq('OOP Data Manager based on Knex and Joi')
+            expect(p0.community.created_at instanceof Date).to.eq(true)
+
+            expect(p0.community.user.id).to.eq(1)
+            expect(p0.community.user.username).to.eq('fantasim')
+            expect(p0.community.user.created_at).to.eq(undefined)
+            expect(p0.community.user.access_token).to.eq(undefined)
+
+            const p1 = plain[1]
+
+            expect(p1.id).to.eq(2)
+            expect(p1.content).to.eq('I dont like elzeard')
+            expect(p1.created_at instanceof Date).to.eq(true)
+
+            expect(p1.user.id).to.eq(2)
+            expect(p1.user.username).to.eq('second')
+            expect(p1.user.created_at).to.eq(undefined)
+            expect(p1.user.access_token).to.eq(undefined)
+
+            expect(p1.community.id).to.eq(1)
+            expect(p1.community.name).to.eq('elzeard')
+            expect(p1.community.description).to.eq('OOP Data Manager based on Knex and Joi')
+            expect(p1.community.created_at instanceof Date).to.eq(true)
+
+            expect(p1.community.user.id).to.eq(1)
+            expect(p1.community.user.username).to.eq('fantasim')
+            expect(p1.community.user.created_at).to.eq(undefined)
+            expect(p1.community.user.access_token).to.eq(undefined)
+
+            list.local().unpopulate()
+            expect(list.super().is().populated()).to.eq(false)
+            expect(list.super().is().populatable()).to.eq(true)
+            expect(list.super().is().unpopulated()).to.eq(true)
+
+            const plain2 = list.local().to().plain()
+            expect(plain2.length).to.eq(2)
+            const p20 = plain2[0]
+
+            expect(p20.id).to.eq(1)
+            expect(p20.content).to.eq('I love elzeard')
+            expect(p20.created_at instanceof Date).to.eq(true)
+            expect(p20.user).to.eq(1)
+            expect(p20.community).to.eq(1)
+
+            const p21 = plain2[1]
+
+            expect(p21.id).to.eq(2)
+            expect(p21.content).to.eq('I dont like elzeard')
+            expect(p21.created_at instanceof Date).to.eq(true)
+            expect(p21.user).to.eq(2)
+            expect(p21.community).to.eq(1)
+        })
+
+        it('saveToDB on Model', async () => {
+
+        
+        })
+
+        it('saveToDB on Collection', async () => {
+
+        })
+
+
     })
 }
