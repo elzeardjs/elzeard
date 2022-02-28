@@ -8,7 +8,7 @@ export class PostModel extends Model {
         id: Joi.number().autoIncrement().primaryKey(),
         content: Joi.string().min(1).max(3000).required(),
         created_at: Joi.date().required().default('now'),
-        user: Joi.number().positive().required().foreignKey('users2', 'id', 'post').deleteCascade()
+        user: Joi.number().positive().required().foreignKey('users2', 'id', 'preview').deleteCascade()
     })
 
     constructor(initialState: any, options: any){
@@ -30,8 +30,8 @@ export class PostList extends Collection {
 export class UserModel extends Model {
 
     static schema = Joi.object({
-        id: Joi.number().autoIncrement().primaryKey().group(['post']),
-        username: Joi.string().min(3).max(20).lowercase().required().unique().group(['post']),
+        id: Joi.number().autoIncrement().primaryKey().group(['preview']),
+        username: Joi.string().min(3).max(20).lowercase().required().unique().group(['preview']),
         created_at: Joi.date().required().default('now'),
         access_token: Joi.string().uuid().required().unique()
     })

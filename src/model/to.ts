@@ -1,13 +1,12 @@
 import Model from './'
-import { toPlain, GROUP_PLAIN_OPTION } from './utils'
+import { toPlain } from './utils'
 
 export default (m: Model) => {
     const mRef = m.copy()
     const isUnpopulated = mRef.super().is().unpopulated()
-    let plainOPT: any = undefined
 
     //Returns the model state into a plain object
-    const plain = (): any => toPlain(mRef, plainOPT)
+    const plain = (): any => toPlain(mRef)
     //Returns the unpopulated model state into a plain object
     const plainUnpopulated = () => isUnpopulated ? plain() : mRef.unpopulate().to().plain()
     //Returns the populated model state into a plain object
@@ -23,10 +22,10 @@ export default (m: Model) => {
 
     //Filter the result rendered by specifying a group name
     const filterGroup = (groupName: string | void) => {
-        plainOPT = GROUP_PLAIN_OPTION
         const groups = mRef.super().schemaSpecs().getGroups()
-        if (groupName && groups[groupName])
+        if (groupName && groups[groupName]){
             mRef.super().fillGroup(groups[groupName])
+        }
         return ret
     }
 

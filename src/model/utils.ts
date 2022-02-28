@@ -6,11 +6,9 @@ import Model from './'
 import Manager from '../manager'
 import errors from '../errors'
 
-export const GROUP_PLAIN_OPTION = 'group'
-
 //Return the state to JSONified object.
 //It implies that the state is an array, an object or a Model typed class (model or extended from Model)
-export const toPlain = (m: Model, opt: string | void): any => {
+export const toPlain = (m: Model): any => {
     const ret: any = {}; 
     
     const recur = (o: any, path: string, groupKeys: string[] = []) => {
@@ -33,7 +31,7 @@ export const toPlain = (m: Model, opt: string | void): any => {
 
         //if this is a Model class
         if (o instanceof Model){
-            recur(o.state, path, opt === GROUP_PLAIN_OPTION ? o.super().group : [])
+            recur(o.state, path, o.super().group)
             return
         }
 
