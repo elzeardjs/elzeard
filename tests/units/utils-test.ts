@@ -254,6 +254,10 @@ export default async () => {
 
             await t.populate()
 
+            expect(t.super().is().populated()).to.eq(true)
+            expect(t.super().is().populatable()).to.eq(true)
+            expect(t.super().is().unpopulated()).to.eq(false)
+
             expect(t.ID()).to.eq(1)
             expect(t.content()).to.eq('I love elzeard')
             expect(t.createdAt() instanceof Date ).to.eq(true)
@@ -275,7 +279,7 @@ export default async () => {
             expect(t.community().user().accessToken()).to.eq('9e163f1d-5d54-4198-a614-32798ace74d5')
         })
 
-        it('Model 3 : populate/unpopulate + group', async () => {
+        it('Model 3 : populate/unpopulate/plain/group', async () => {
             const l = await likes.quick().find(1) as LikeModel
 
             expect(l.super().is().populated()).to.eq(true)
@@ -310,9 +314,77 @@ export default async () => {
             expect(l.tweet().community().user().username()).to.eq('fantasim')
             expect(l.tweet().community().user().createdAt() instanceof Date ).to.eq(true)
             expect(l.tweet().community().user().accessToken()).to.eq('9e163f1d-5d54-4198-a614-32798ace74d5')
+
+
+            const plain = l.to().plain()
+            expect(plain.id).to.eq(1)
+            expect(plain.created_at instanceof Date).to.eq(true)
+
+            expect(plain.user.id).to.eq(1)
+            expect(plain.user.username).to.eq('fantasim')
+            expect(plain.user.created_at).to.eq(undefined)
+            expect(plain.user.access_token).to.eq(undefined)
+
+            expect(plain.tweet.id).to.eq(undefined)
+            expect(plain.tweet.content).to.eq('I love elzeard')
+            expect(plain.tweet.user).to.eq(undefined)
+            expect(plain.tweet.created_at).to.eq(undefined)
+            
+            expect(plain.tweet.community.id).to.eq(1)
+            expect(plain.tweet.community.name).to.eq('elzeard')
+            expect(plain.tweet.community.description).to.eq('OOP Data Manager based on Knex and Joi')
+            expect(plain.tweet.community.created_at instanceof Date).to.eq(true)
+
+            expect(plain.tweet.community.user.id).to.eq(1)
+            expect(plain.tweet.community.user.username).to.eq('fantasim')
+            expect(plain.tweet.community.user.created_at).to.eq(undefined)
+            expect(plain.tweet.community.user.access_token).to.eq(undefined)
+
+            l.unpopulate()
+            expect(l.super().is().populated()).to.eq(false)
+            expect(l.super().is().populatable()).to.eq(true)
+            expect(l.super().is().unpopulated()).to.eq(true)
+            expect(l.ID()).to.eq(1)
+            expect(l.createdAt() instanceof Date ).to.eq(true)
+            expect(typeof l.user()).to.eq('number')
+            expect(l.user()).to.eq(1)
+            expect(typeof l.tweet()).to.eq('number')
+            expect(l.tweet()).to.eq(1)
+
+            await l.populate()
+
+            expect(l.super().is().populated()).to.eq(true)
+            expect(l.super().is().populatable()).to.eq(true)
+            expect(l.super().is().unpopulated()).to.eq(false)
+
+            expect(l.ID()).to.eq(1)
+            expect(l.createdAt() instanceof Date ).to.eq(true)
+            expect(typeof l.user()).to.eq('object')
+            expect(l.user().ID()).to.eq(1)
+            expect(l.user().username()).to.eq('fantasim')
+            expect(l.user().createdAt() instanceof Date ).to.eq(true)
+            expect(l.user().accessToken()).to.eq('9e163f1d-5d54-4198-a614-32798ace74d5')
+            expect(typeof l.tweet()).to.eq('object')
+
+            expect(l.tweet().ID()).to.eq(1)
+            expect(l.tweet().content()).to.eq('I love elzeard')
+            expect(l.tweet().createdAt() instanceof Date ).to.eq(true)
+            expect(typeof l.tweet().user()).to.eq('object')
+            expect(l.tweet().user().ID()).to.eq(1)
+            expect(l.tweet().user().username()).to.eq('fantasim')
+            expect(l.tweet().user().createdAt() instanceof Date ).to.eq(true)
+            expect(l.tweet().user().accessToken()).to.eq('9e163f1d-5d54-4198-a614-32798ace74d5')
+            expect(typeof l.tweet().community()).to.eq('object')
+
+            expect(l.tweet().community().ID()).to.eq(1)
+            expect(l.tweet().community().name()).to.eq('elzeard')
+            expect(l.tweet().community().description()).to.eq('OOP Data Manager based on Knex and Joi')
+            expect(l.tweet().community().createdAt() instanceof Date ).to.eq(true)
+            expect(typeof l.tweet().community().user()).to.eq('object')
+            expect(l.tweet().community().user().ID()).to.eq(1)
+            expect(l.tweet().community().user().username()).to.eq('fantasim')
+            expect(l.tweet().community().user().createdAt() instanceof Date ).to.eq(true)
+            expect(l.tweet().community().user().accessToken()).to.eq('9e163f1d-5d54-4198-a614-32798ace74d5')
         })
-
-
     })
-
 }
