@@ -15,8 +15,8 @@ export const initServer = async () => {
     config.setHistoryDirPath('./history')
     config.setMySQLConfig({
       host: 'localhost',
-      user: 'fanta',
-      password: 'aqw12345',
+      user: '',
+      password: '',
       database: 'blog',
       timezone: 'utc'
     })
