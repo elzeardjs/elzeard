@@ -12,7 +12,6 @@ export type TObjectStringAny = { [char: string]: string | number | null | Date }
 
 
 /* CHECK UTIL METHODS */
-
 const checks = (c: Collection) => {
     /* 
         This function check and return an error if one of the data
@@ -169,7 +168,7 @@ const request = (c: Collection) => {
         } 
     }
 
-    const putHandler = (keysAllowed: string[], filterGroup: string | void) => {
+    const putHandler = (keysAllowed: string[], filterGroup: string | void, param: string | TObjectStringAny) => {
         return async (req: any, res: any) => { 
             const data: any = {}
             keysAllowed.map((v: string) => {
@@ -194,7 +193,7 @@ const request = (c: Collection) => {
             }
 
             try {
-                const t = await c.quick().find(req.params.id)
+                const t = await c.quick().find(typeof param === 'string' ? req.params[param] : param)
                 if (!t)
                     res.sendStatus(404)
                 else {
