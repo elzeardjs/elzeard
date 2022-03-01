@@ -1,6 +1,6 @@
 <p align="center" font-style="italic" >
   <a>
-    <img alt="elzeard" src="https://siasky.net/IAAgFQE1V1et5JmmXPNlG5tki-5YG8v4HYXbmRBdmxItgg" width="100%">
+    <img alt="elzeard" src="https://github.com/Fantasim/assets/blob/master/elzeard-baneer.png?raw=true" width="100%">
   </a>
   + Maintanability. | - Code Redundancy. | - Debugging. | + Productivity.
 </p>
