@@ -41,22 +41,28 @@
 
 A Model is built with an **object**.
 
-#### Example - Todo Model:
+#### Example - Article Model:
 ```ts
-import { Model } from 'acey'
+import { Model } from 'elzeard'
 
-class Todo extends Model {
+class ArticleModel extends Model {
 
-    constructor(initialState = {}, options){
-        super(initialState, options)
+    static schema = Joi.object({
+        id: Joi.number().autoIncrement().primaryKey(),
+        title: Joi.string().min(0).max(140).default(''),
+        content: Joi.string().min(20).max(5000).required(),
+        created_at: Joi.date().default(() => new Date()),
+    })
+
+    constructor(initialState: any, options: any){
+        super(initialState, ArticleModel, options)
     }
- 
-    content = () => this.state.content
-    ID = () => this.state.id
-    createdAt = () => this.state.created_at
-}
 
-export default Todo
+    ID = (): number => this.state.id
+    title = (): string => this.state.title
+    content = (): string => this.state.content
+    createdAt = (): Date => this.state.created_at
+}
 ```
 
 <br />
@@ -78,15 +84,18 @@ export default Todo
     | Prototype | Return value | Description |
     | -- | -- | -- |
     | [**deleteKey**](https://github.com/arysociety/acey/blob/master/docs/examples.md#deletekey) (key: string or string[]) | `IAction` | remove **key(s)** in the Model's state object |
-    | [**hydrate**](https://github.com/arysociety/acey/blob/master/docs/examples.md#hydrate)(state: Object) | `IAction` | **fill the Model's state** with the `Object` passed in parameter. |
+    | async [**destroy**](https://github.com/arysociety/acey/blob/master/docs/examples.md#deletekey)() | `void` | Remove the Model's state from its table |
     | [**is**](https://github.com/arysociety/acey/blob/master/docs/examples.md#is)() |`IsManager` | return **methods giving informations** about the **Model's composition**. |
-    | [**kids**](https://github.com/arysociety/acey/blob/master/docs/examples.md#kids)() | `IAction` | return the class actions (use to be passed as options in nested Models.) |
-    | [**save**](https://github.com/arysociety/acey/blob/master/docs/examples.md#save)() |`IAction` | **Dispatch** the Model's state to the Model's store. |
+    | [**saveToDB**](https://github.com/arysociety/acey/blob/master/docs/examples.md#save)() |`void` | **Save** the Model's state into the database. (update or insert) |
+    | [**copy**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)() |`Model` | Returns an identical copy of the current model |
+    | async [**populate**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)() |`void` | Replaces the key defined as a foreign key or a populated with the object at the origin of the foreign key or populate key. |
+    | [**unpopulate**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)() |`void` | Reverse effect of **populate()** |
+    | [**new**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)(defaultState: Object) |`Model` | Create a new Model based on the current one with the state passed in parameters |
     | [**setState**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)(state: Object) |`IAction` | **update the state** by merging it with the `Object` parameter. |
     | [**super**](https://github.com/arysociety/acey/blob/master/docs/examples.md#super)() | `ISuper` | return methods used by the **acey system**. |
-    | [**localStore**](https://github.com/arysociety/acey/blob/master/docs/examples.md#localstore)() |`LocalStoreManager`| **(Only if `connected` option is set to `true`)** return the Model's LocalStoreManager to deal with the local store related with the Model |
+    | [**sql**](https://github.com/arysociety/acey/blob/master/docs/examples.md#to)() | `SQLManager` | returns SQL methods to do on your Model's state |
     | [**to**](https://github.com/arysociety/acey/blob/master/docs/examples.md#to)() | `ITo` | return methods to **convert your Model's state** into different data types (like **string**, **JSON**..) |
-    | [**watch**](https://github.com/arysociety/acey/blob/master/docs/examples.md#watch)() |`IWatchAction` | return methods to **watch changes** on the Model's **state**, **store** and **local store** |
+    | [**mustValidateSchema**](https://github.com/arysociety/acey/blob/master/docs/examples.md#to)(state: Object) | `void` | Throw an error if the state passed in parameter doesn't match the Model's schema |
     
 <br />
 
@@ -102,29 +111,23 @@ export default Todo
 
 A Collection is a Model that has for state an array of Models.
 
-#### Example - Todo Collection
-```js
-import { Collection } from 'acey'
-import Todo from './todo'
-
-class Todolist extends Collection {
-
-    constructor(initialState = [], options){
-        super(initialState, [Todo, Todolist], options)
+#### Example - Article Collection
+```ts
+import { Collection, Model } from 'elzeard'
+...
+class ArticleCollection extends Collection {
+    constructor(initialState: any, options: any){
+        super(initialState, [ArticleModel, ArticleCollection], options)
+    }
+ 
+    create = (title: string, content: string) => {
+      return this.quick().create({ title, content }) as ArticleModel
     }
     
-    create = (content) => {
-      this.push({
-        id: randomID(),
-        content,
-        created_at: new Date(),
-      }).save()
+    pull5LastArticles = () => {
+      return this.quick().pull().orderBy('created_at', 'desc').limit(5).run() as ArticleCollection
     }
-    
-    sortByContent = () => this.orderBy(['content'], ['desc]) as Todolist
 }
-
-export default Todolist
 ```
 
 <br />
