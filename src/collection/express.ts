@@ -168,7 +168,7 @@ const request = (c: Collection) => {
         } 
     }
 
-    const putHandler = (keysAllowed: string[], filterGroup: string | void, param: string | TObjectStringAny) => {
+    const putHandler = (keysAllowed: string[], param: string | TObjectStringAny, filterGroup: string | void) => {
         return async (req: any, res: any) => { 
             const data: any = {}
             keysAllowed.map((v: string) => {
