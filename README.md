@@ -91,7 +91,7 @@ Quick example [here](https://github.com/elzeardjs/joixsql/tree/master/example)
 
 
 <p align="center">
-  <a target="_blank" href="https://github.com/arysociety/acey/blob/master/docs/api.md">
+  <a target="_blank" href="https://github.com/elzeardjs/elzeard/blob/master/docs/api.md">
     <img width="15%" src="https://siasky.net/CACTHjC4zAHYkDTKqu9kF54Oa0B82lwMWIwTAWmgi3MQiQ"/>
   </a>
 
@@ -103,7 +103,7 @@ Quick example [here](https://github.com/elzeardjs/joixsql/tree/master/example)
 
   <img width="5%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
 
-  <a target="_blank" href="https://github.com/arysociety/acey-examples">
+  <a target="_blank" href="https://github.com/elzeardjs/elzeard/tree/master/examples">
     <img width="15%" src="https://siasky.net/EAABjRbonXUkzrt1jQ1yEVr--jLoMP4zxgPY7j_TRgSzlA"/>
   </a>
 </p>
