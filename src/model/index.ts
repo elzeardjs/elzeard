@@ -34,13 +34,14 @@ export default class Model {
 
     private _option: OptionManager
     
+    //Returns the local's state of the model
     public get state(){ 
         this._checkIfModelIsDestroyed()
         return this._state 
     }
 
     /* 
-        Methods used by Elzeard itself for the framwork.
+        Methods used by Elzeard itself for its working process.
         You won't need to access this method unless you are building
         a package on top or an extension.
     */
@@ -75,7 +76,7 @@ export default class Model {
         }
     }
 
-    //returns SQL methods
+    //Returns SQL methods to do to interact with the Model local state.
     public sql = () => {
         this._checkIfModelIsDestroyed()
         return this.super().option().get().sql as SQLManager
@@ -109,18 +110,19 @@ export default class Model {
         return this        
     }
 
+    //Returns an identical copy of the current model
     public copy = (): Model => {
         this._checkIfModelIsDestroyed()
         return this.new(this.state).super().fillPrevStateStore(this.super().prevStateStore)
     }
 
-    //Create a new Model based on the current one wit the state passed in parameters
+    //Create a new Model based on the current one with the state passed in parameters
     public new = (defaultState: any) => {
         this._checkIfModelIsDestroyed()
         return new (this.super().option().nodeModel())(defaultState, this.super().option().kids())
     }
 
-    //Save the Model's state into the Collection's table it is linked with
+    //Save the Model's state into the database. (update or insert)
     public saveToDB = async () => {
         this._checkIfModelIsDestroyed()
         if (this.super().option().isKidsPassed()){
@@ -170,6 +172,7 @@ export default class Model {
         this._set(newState)
     }
 
+    //Replaces the key defined as a foreign key or a populated with the object at the origin of the foreign key or populate key.
     public populate = async () => {
         this._checkIfModelIsDestroyed()
         if (this.super().is().unpopulated() || this.super().is().plainPopulated()) 
@@ -177,12 +180,14 @@ export default class Model {
         return this
     }
 
+    //Reverse of populate
     public unpopulate = () => {
         this._checkIfModelIsDestroyed()
         unpopulate(this)
         return this
     }
 
+    //Throw an error if the state passed in parameter doesn't match the Model's schema
     public mustValidateSchema = (state = this.state) => {
         this._checkIfModelIsDestroyed()
 

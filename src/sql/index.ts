@@ -40,7 +40,7 @@ export default class SQLManager {
     public list = (values: Model[]) => listMethods(values, this.collection())
     //Perform SQL request based on a Model
     public node = (n: Model) => nodeMethods(n, this.collection())
-    //Fetch rows and set them in a new returned Collection
+    //Fetch rows and set them in a new returned Collection local state
     public pull = () => pullMethods(this.collection())
     //Perform SQL request on a table
     public table = () => tableMethods(this.collection())

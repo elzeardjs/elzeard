@@ -29,12 +29,17 @@ export default (c: Collection): IQuick => {
         return isPrimary(v)
     }
 
+    //Inserts a row in the Collection's table
     const create = async (d: Object): Promise<Model> => {
         const m = c.newNode(d).mustValidateSchema()
         await sql.node(m).insert()
         return await m.populate()
     }
 
+    /*
+        Removes a row in the Collection's table
+        valid predicate: Primary key value or predicate object.
+    */
     const remove = async (...primaryOrPredicate: any) => {
         const isOneArg = primaryOrPredicate.length == 1
         if (primaryOrPredicate.length === 0)
@@ -49,6 +54,10 @@ export default (c: Collection): IQuick => {
         return sql.remove().where(...primaryOrPredicate)
     }
 
+    /*
+        Count rows in the Collection's table
+        valid paramaters: nothing (all) or predicate object.
+    */
     const count = async (...v: any): Promise<number> => {
         if (v.length === 0)
             return await sql.count().all()
@@ -59,6 +68,10 @@ export default (c: Collection): IQuick => {
         return await sql.count().where(...v)
     }
 
+    /*
+        Updates a row in the Collection's table
+        valid predicate: Primary key value or predicate object.
+    */
     const update = async (data: Object, ...predicate: any) => {
         if (predicate.length === 0)
             return await sql.update(data).all()
@@ -69,6 +82,10 @@ export default (c: Collection): IQuick => {
         return await sql.update(data).where(...predicate)
     }
 
+    /*
+        Find row from the Collection's table
+        valid predicate: Primary key value or predicate object.
+    */
     const find = async (...primaryOrPredicate: any) => {
         const isOneArg = primaryOrPredicate.length == 1
         if (primaryOrPredicate.length === 0)
@@ -83,6 +100,10 @@ export default (c: Collection): IQuick => {
         return sql.find().where(...primaryOrPredicate)
     }
 
+    /*
+        Pull rows from the Collection's table into the Collection local state
+        valid paramaters: nothing (all) or predicate object.
+    */
     const pull = (...v: any) => {
         if (v.length === 0)
             return c.ctx().sql().pull().all()

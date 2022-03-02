@@ -353,18 +353,6 @@ export default async () => {
             expect(p.local().count()).to.eq(4)
         })
 
-        it('removeAll', async () => {
-            const p = await posts.quick().pull().run()
-
-            expect(p.local().count()).to.eq(6)
-            expect(!!(p.local().find({content: '3_CONTENT_1'})) ).to.eq(true)
-            expect(!!(p.local().find({content: '1_CONTENT_1'})) ).to.eq(true)
-            p.local().removeAll([{ content: '3_CONTENT_1'}, {content:'1_CONTENT_1'}, {content: 'bullshit'}])
-            expect(!!(p.local().find({content: '3_CONTENT_1'})) ).to.eq(false)
-            expect(!!(p.local().find({content: '1_CONTENT_1'})) ).to.eq(false)
-            expect(p.local().count()).to.eq(4)
-        })
-
         it('removeBy', async () => {
             const p = await posts.quick().pull().run()
             

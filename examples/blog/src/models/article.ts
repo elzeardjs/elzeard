@@ -23,6 +23,8 @@ export class ArticleCollection extends Collection {
     constructor(initialState: any, options: any){
         super(initialState, [ArticleModel, ArticleCollection], options)
     }
+
+    pullSortedByDate = async () => await this.quick().pull().orderBy('created_at', 'desc').limit(5).run() as ArticleCollection
 }
 
 export default new ArticleCollection([], {table: 'articles'})

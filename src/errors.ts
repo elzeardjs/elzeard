@@ -13,7 +13,9 @@ export default {
 
     noCollectionBinding: (m: Model) => new Error(`You need to bind Model ${m.constructor.name} to a parent Collection to perform this action. -> You should set the the option 'kids' in the Model option at instanciation. Example: new Model({...someState}, parentCollection.option().kids())`),
     modelDestroyed: (m: Model) => new Error(`Model ${m.constructor.name} has been destroyed and is not anymore usable`),
-    modelArrayOnly: () => new Error(`You can only call this method with an array of Model as parameter.`)
+    modelArrayOnly: () => new Error(`You can only call this method with an array of Model as parameter.`),
+
+    pullOnMotherCollection: () => new Error(`The local state of the first instance of a SQL connected collection can't be updated. Use the method ctx() before updating it.`)
 }
 
 

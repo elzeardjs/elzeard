@@ -7,9 +7,9 @@ import runUtilTests from './utils-test'
 
 const SQL_CONFIG = {
     host: 'localhost',
-    user: 'fanta',
-    password: 'aqw12345',
-    database: 'inspirationeum',
+    user: '',
+    password: '',
+    database: '',
     timezone: 'utc',
 }
 

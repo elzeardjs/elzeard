@@ -29,7 +29,14 @@ export default class Collection {
 
     public get __contextID() { return this._contextID}
 
+    /* 
+        Methods used by Elzeard itself for its working process.
+        You won't need to access this method unless you are building
+        a package on top or an extension.
+    */
     public super = () => {
+
+        //returns the JoiXSQL schema of the collection (includes the Joi object)
         const schemaSpecs = () => {
             const modelSchema = ((option().nodeModel()) as any).schema
             const ecosystem = (config.ecosystem() as Ecosystem)
@@ -45,9 +52,16 @@ export default class Collection {
         }
     }
 
+    //Returns a list of SQL queries adapted for the Collection
     public sql = (): SQLManager => this._sql
+
+    //Returns methods to interact with the collection local state.
     public local = (): LocalManager => this._local
+
+    //Execute quick and parameter less SQL queries adapted for the Collection
     public quick = () => QuickManager(this)
+    
+    //Returns utility functions when using Elzeard with Express.js
     public expressTools = () => ExpressTools(this)
 
     constructor(list: any[] = [], models: [Constructor<Model>, Constructor<Collection>], ...props: any){
@@ -66,11 +80,19 @@ export default class Collection {
         this.super().is().autoConnected() && !this.super().is().kidsPassed() && Manager.prepareCollection(this)
     }
 
+    //Returns an identical copy of the current Collection
     public copy = (): Collection => this.new(this.local().to().plain())
 
+    /*
+        Methods to call before doing a SQL pull or updating the local state of the first instance of a SQL connected collection.
+        example : churros.ctx().sql().pull().where({sugar: true}).run()  
+    */
     public ctx = (): Collection => this.new([])
 
+    //Creates a new Collection based on the current one with the state passed in parameters
     public new = (v: any = []): Collection => this.super().is().nodeCollection(v) ? v : this._newNodeCollectionInstance(v).local().fillPrevStateStore(this.local().prevStateStore)
+
+    //Create a new instanced Collection's node with the state passed in parameter.
     public newNode = (v: any): Model => this.super().is().nodeModel(v) ? v : this._newNodeModelInstance(v)
 
     private _newNodeCollectionInstance = (defaultState: any) => new (this.super().option().nodeCollection())(defaultState, this.super().option().kids())  
