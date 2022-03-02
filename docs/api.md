@@ -8,19 +8,19 @@
 
 <p align="center">
   <a href="#model">
-    <img width="20%" src="https://siasky.net/EAAzsnQ4WJc4Yg5pbj-Z-Dp7c7av6NV_jqakGpXoQrDh2A"/>
+    <img width="20%" src="https://github.com/Fantasim/assets/blob/master/68747470733a2f2f736961736b792e6e65742f4541417a736e5134574a633459673570626a2d5a2d44703763376176364e565f6a71616b4770586f517244683241.png?raw=true"/>
   </a>
 
   <img width="5%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
   
   <a href="#collection">
-    <img width="20%" src="https://siasky.net/EABCA6-YMiNNSgZQr-SGFw8PTlRcRUy1umxSlx5l1NJBxw"/>
+    <img width="20%" src="https://github.com/Fantasim/assets/blob/master/68747470733a2f2f736961736b792e6e65742f4541424341362d594d694e4e53675a51722d534746773850546c526352557931756d78536c78356c314e4a427877.png?raw=true"/>
   </a>
 
   <img width="5%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
 
   <a href="#interfaces">
-    <img width="20%" src="https://siasky.net/EACuwZuJQfGmZ0qap3qAuHMdn_TVPrNjbIlXpRuh6vp3SA"/>
+    <img width="20%" src="https://github.com/Fantasim/assets/blob/master/68747470733a2f2f736961736b792e6e65742f45414375775a754a5166476d5a3071617033714175484d646e5f545650724e6a62496c5870527568367670335341.png?raw=true"/>
   </a>
 </p>
 
@@ -35,28 +35,34 @@
 
 <p align="center" font-style="italic" >
   <a>
-    <img src="https://siasky.net/EADADSyChLwhkcxglW4V9Kdce6xMBGNbEIixagA8iVHzMw" width="100%">
+    <img src="https://github.com/Fantasim/assets/blob/master/model.png?raw=true" width="100%">
   </a>
 </p>
 
 A Model is built with an **object**.
 
-#### Example - Todo Model:
+#### Example - Article Model:
 ```ts
-import { Model } from 'acey'
+import { Model } from 'elzeard'
 
-class Todo extends Model {
+class ArticleModel extends Model {
 
-    constructor(initialState = {}, options){
-        super(initialState, options)
+    static schema = Joi.object({
+        id: Joi.number().autoIncrement().primaryKey(),
+        title: Joi.string().min(0).max(140).default(''),
+        content: Joi.string().min(20).max(5000).required(),
+        created_at: Joi.date().default(() => new Date()),
+    })
+
+    constructor(initialState: any, options: any){
+        super(initialState, ArticleModel, options)
     }
- 
-    content = () => this.state.content
-    ID = () => this.state.id
-    createdAt = () => this.state.created_at
-}
 
-export default Todo
+    ID = (): number => this.state.id
+    title = (): string => this.state.title
+    content = (): string => this.state.content
+    createdAt = (): Date => this.state.created_at
+}
 ```
 
 <br />
@@ -78,15 +84,18 @@ export default Todo
     | Prototype | Return value | Description |
     | -- | -- | -- |
     | [**deleteKey**](https://github.com/arysociety/acey/blob/master/docs/examples.md#deletekey) (key: string or string[]) | `IAction` | remove **key(s)** in the Model's state object |
-    | [**hydrate**](https://github.com/arysociety/acey/blob/master/docs/examples.md#hydrate)(state: Object) | `IAction` | **fill the Model's state** with the `Object` passed in parameter. |
+    | async [**destroy**](https://github.com/arysociety/acey/blob/master/docs/examples.md#deletekey)() | `void` | Remove the Model's state from its table |
     | [**is**](https://github.com/arysociety/acey/blob/master/docs/examples.md#is)() |`IsManager` | return **methods giving informations** about the **Model's composition**. |
-    | [**kids**](https://github.com/arysociety/acey/blob/master/docs/examples.md#kids)() | `IAction` | return the class actions (use to be passed as options in nested Models.) |
-    | [**save**](https://github.com/arysociety/acey/blob/master/docs/examples.md#save)() |`IAction` | **Dispatch** the Model's state to the Model's store. |
+    | [**saveToDB**](https://github.com/arysociety/acey/blob/master/docs/examples.md#save)() |`void` | **Save** the Model's state into the database. (update or insert) |
+    | [**copy**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)() |`Model` | Returns an identical copy of the current model |
+    | async [**populate**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)() |`void` | Replaces the key defined as a foreign key or a populated with the object at the origin of the foreign key or populate key. |
+    | [**unpopulate**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)() |`void` | Reverse effect of **populate()** |
+    | [**new**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)(defaultState: Object) |`Model` | Create a new Model based on the current one with the state passed in parameters |
     | [**setState**](https://github.com/arysociety/acey/blob/master/docs/examples.md#setstate)(state: Object) |`IAction` | **update the state** by merging it with the `Object` parameter. |
     | [**super**](https://github.com/arysociety/acey/blob/master/docs/examples.md#super)() | `ISuper` | return methods used by the **acey system**. |
-    | [**localStore**](https://github.com/arysociety/acey/blob/master/docs/examples.md#localstore)() |`LocalStoreManager`| **(Only if `connected` option is set to `true`)** return the Model's LocalStoreManager to deal with the local store related with the Model |
+    | [**sql**](https://github.com/arysociety/acey/blob/master/docs/examples.md#to)() | `SQLManager` | returns SQL methods to do on your Model's state |
     | [**to**](https://github.com/arysociety/acey/blob/master/docs/examples.md#to)() | `ITo` | return methods to **convert your Model's state** into different data types (like **string**, **JSON**..) |
-    | [**watch**](https://github.com/arysociety/acey/blob/master/docs/examples.md#watch)() |`IWatchAction` | return methods to **watch changes** on the Model's **state**, **store** and **local store** |
+    | [**mustValidateSchema**](https://github.com/arysociety/acey/blob/master/docs/examples.md#to)(state: Object) | `void` | Throw an error if the state passed in parameter doesn't match the Model's schema |
     
 <br />
 
@@ -96,35 +105,29 @@ export default Todo
 
 <p align="center" font-style="italic" >
   <a>
-    <img src="https://siasky.net/GADqcD9yzvtu9lMGSVtKY5bXto96CJpFu7jTJyMy78iZrA" width="100%">
+    <img src="https://github.com/Fantasim/assets/blob/master/collection.png" width="100%">
   </a>
 </p>
 
 A Collection is a Model that has for state an array of Models.
 
-#### Example - Todo Collection
-```js
-import { Collection } from 'acey'
-import Todo from './todo'
-
-class Todolist extends Collection {
-
-    constructor(initialState = [], options){
-        super(initialState, [Todo, Todolist], options)
+#### Example - Article Collection
+```ts
+import { Collection, Model } from 'elzeard'
+...
+class ArticleCollection extends Collection {
+    constructor(initialState: any, options: any){
+        super(initialState, [ArticleModel, ArticleCollection], options)
+    }
+ 
+    create = (title: string, content: string) => {
+      return this.quick().create({ title, content }) as ArticleModel
     }
     
-    create = (content) => {
-      this.push({
-        id: randomID(),
-        content,
-        created_at: new Date(),
-      }).save()
+    pull5LastArticles = () => {
+      return this.quick().pull().orderBy('created_at', 'desc').limit(5).run() as ArticleCollection
     }
-    
-    sortByContent = () => this.orderBy(['content'], ['desc]) as Todolist
 }
-
-export default Todolist
 ```
 
 <br />
@@ -199,7 +202,7 @@ export default Todolist
 
 <p align="center">
   <a>
-    <img src="https://siasky.net/GACKFKVF4znkcrcpSl_oOMESCOPMKYm1qFqLCwTkmIGo1g" width="100%">
+    <img src="https://github.com/Fantasim/assets/blob/master/interfaces.png" width="100%">
   </a>
 </p>
 
