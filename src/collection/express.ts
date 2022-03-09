@@ -157,7 +157,6 @@ const request = (c: Collection) => {
             }
 
             try {
-                console.log(data)
                 const m = await c.quick().create(data)
                 res.status(201)
                 res.json(m.to().filterGroup(filterGroup).plain())
