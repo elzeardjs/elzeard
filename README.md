@@ -13,11 +13,11 @@
 
 <br />
 
-# OOP Data Manager based on Knex and Joi. 🌿
+# OOP ORM based on Knex and Joi. 🌿
 
 ## Introduction
 
-Elzeard is a OOP data manager built on top of **[Knex](https://github.com/knex/knex)**, and **[Joi](https://joi.dev/api/?v=17.6.0)** : Two **main** JS libraries when it's about **maintaining code organization** and **securizing** back-end apps.
+Elzeard is an OOP ORM built on top of **[Knex](https://github.com/knex/knex)**, and **[Joi](https://joi.dev/api/?v=17.6.0)** : Two **main** JS libraries when it's about **maintaining code organization** and **securizing** back-end apps.
 
 ⚠️ The current version **only** works with a **MySQL/Maria database**
 
