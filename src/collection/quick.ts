@@ -118,8 +118,8 @@ export default (c: Collection): IQuick => {
     const test = (v: any) => {
         try {
             c.newNode(undefined).mustValidateSchema(v)
-        } catch (e){
-            return e
+        } catch (e: any){
+            throw new Error(e)
         }
     }
 

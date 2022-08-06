@@ -22,8 +22,7 @@ export default class Manager {
                 await TableEngine.buildAllFromEcosystem()
                 await MigrationManager.smartMigration()
                 this.setInitialized()
-            } catch (e){
-                console.log(e)
+            } catch (e:any){
                 throw new Error(e)
             }
         }

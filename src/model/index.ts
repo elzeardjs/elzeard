@@ -143,7 +143,7 @@ export default class Model {
         try {
             await this.sql().node(this).delete()
             this._isModelDestroyed = true
-        } catch (e){
+        } catch (e: any){
             throw new Error(e)
         }
     }
@@ -159,7 +159,7 @@ export default class Model {
             !skipSchemaValidation && this.mustValidateSchema(newState)
             this._set(newState)
             verifyAllModel(this) 
-        } catch (e){
+        } catch (e: any){
             throw new Error(e)
         }
         return this

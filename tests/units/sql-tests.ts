@@ -41,7 +41,7 @@ export default async () => {
             expect(t2).to.not.eq(null)
             expect(t2.content()).to.eq(CONTENT_2)
             expect(await todos.sql().count().all()).to.eq(1)
-            todos.sql().node(t2).delete()
+            await todos.sql().node(t2).delete()
             expect(await todos.sql().count().all()).to.eq(0)
         })  
 

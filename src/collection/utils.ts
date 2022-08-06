@@ -3,6 +3,7 @@ import find from 'lodash/find'
 import Collection from "./"
 import Model from "../model"
 import { handleModelGroup } from '../model/utils'
+import { IPopulate } from 'joixsql'
 
 export const plainPopulatedToPopulate = (c: Collection) => {
     if (c.super().is().plainPopulated()){
@@ -41,12 +42,12 @@ export const populate = async (c: Collection) => {
         return plainPopulatedToPopulate(c)
 
     const populates = c.super().schemaSpecs().getPopulate()
-    const toFetchKeys = []
-    const values = []
+    const toFetchKeys: IPopulate[] = []
+    const values: any[] = []
 
     for (let i = 0; i < c.local().count(); i++){
         const m = c.local().state[i] as Model
-        const m_keys = []
+        const m_keys: any[] = []
         for (let p of populates){
             i == 0 && toFetchKeys.push(p)
             m_keys.push(m.state[p.key])
@@ -66,7 +67,7 @@ export const populate = async (c: Collection) => {
         //rows pulled from the DB
         const rows = await collectionRef.sql().query().whereIn(key_reference, filledValues)
 
-        const listNested = []
+        const listNested: any[] = []
         let j = 0;
         while (j < c.local().count()){
             const m = c.local().nodeAt(j) as Model

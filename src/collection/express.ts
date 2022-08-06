@@ -90,7 +90,7 @@ const checks = (c: Collection) => {
             //convert RowDataPacket -> Object
             ret = toPlainObject(ret[0])
 
-            let emptyKey = null
+            let emptyKey: null | string[] = null
             //for each value found.
             for (let key in ret){
                 //if one is equal to null, the data sent is not valid because the populatable reference value doesn't exist.
@@ -130,9 +130,21 @@ const middleware = (c: Collection) => {
 
 
 /* REQUEST UTIL METHODS */
+export type T_CALLBACK = (status: number, m: Model | null) => void
+export interface IReqOptions {
+    where?: TObjectStringAny | string
+    filterGroup?: string
+    callback?: T_CALLBACK
+    noRender?: boolean
+}
+
 const request = (c: Collection) => {
 
-    const postHandler = (keysAllowed: string[], filterGroup: string | void) => {
+    const postHandler = (keysAllowed: string[], options: IReqOptions | void) => {
+        const filterGroup = options ? options.filterGroup : undefined
+        const callback = options ? options.callback : undefined
+        const noRender = options ? options.noRender : undefined
+
         return async (req: any, res: any) => { 
             const data: TObjectStringAny = {}
             keysAllowed.map((v: string) => {
@@ -145,29 +157,38 @@ const request = (c: Collection) => {
         
             const errUnique = await checks(c).uniqueConstraint(data)
             if (errUnique){
-                res.status(409)
-                res.json(errUnique)
+                res.status(409).json(errUnique)
+                callback && callback(409, null)
                 return
             }
             const errForeign = await checks(c).foreignConstraint(data)
             if (errForeign){
-                res.status(409)
-                res.json(errForeign)
+                res.status(409).json(errForeign)
+                callback && callback(409, null)
                 return
             }
 
             try {
                 const m = await c.quick().create(data)
-                res.status(201)
-                res.json(m.to().filterGroup(filterGroup).plain())
-            } catch (e){
-                res.status(500)
-                res.json(e.toString())
+                callback && callback(201, m)
+                !noRender && res.status(201).json(m.to().filterGroup(filterGroup).plain())
+            } catch (e: any){
+                res.status(500).json(e.toString())
+                callback && callback(500, null)
             }
         } 
     }
 
-    const putHandler = (keysAllowed: string[], param: string | TObjectStringAny, filterGroup: string | void) => {
+    const putHandler = (keysAllowed: string[], options: IReqOptions) => {
+        const filterGroup = options ? options.filterGroup : undefined
+        const callback = options ? options.callback : undefined
+        const where = options ? options.where : undefined
+        const noRender = options ? options.noRender : undefined
+        if (!where){
+            throw new Error("You need to set `where` option to identify the object to update. example: primary key value like: `where: 123` or `where: {email: 'joe@yahoo.com'}`")    
+        }
+
+
         return async (req: any, res: any) => { 
             const data: any = {}
             keysAllowed.map((v: string) => {
@@ -180,28 +201,29 @@ const request = (c: Collection) => {
     
             const errUnique = await checks(c).uniqueConstraint(data)
             if (errUnique){
-                res.status(409)
-                res.json(errUnique)
+                res.status(409).json(errUnique)
+                callback && callback(409, null)
                 return
             }
             const errForeign = await checks(c).foreignConstraint(data)
             if (errForeign){
-                res.status(409)
-                res.json(errForeign)
+                res.status(409).json(errForeign)
+                callback && callback(409, null)
                 return
             }
 
             try {
-                const t = await c.quick().find(typeof param === 'string' ? req.params[param] : param)
-                if (!t)
+                const t = await c.quick().find(typeof where === 'string' ? req.params[where] : where)
+                if (!t){
                     res.sendStatus(404)
-                else {
+                    callback && callback(404, null)
+                } else {
                     await t.setState(data).saveToDB()
-                    res.json(t.to().filterGroup(filterGroup).plain())
+                    callback && callback(200, t)
+                    !noRender && res.status(200).json(t.to().filterGroup(filterGroup).plain())
                 }
-            } catch (e){
-                res.status(500)
-                res.json(e.toString())
+            } catch (e: any){
+                res.status(500).json(e.toString())
             }
         }
     }
