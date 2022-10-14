@@ -89,11 +89,7 @@ Quick example [here](https://github.com/elzeardjs/joixsql/tree/master/example)
 
 <br />
 
-
 <p align="center">
-  <a target="_blank" href="https://github.com/elzeardjs/elzeard/blob/master/docs/api.md">
-    <img width="15%" src="https://siasky.net/CACTHjC4zAHYkDTKqu9kF54Oa0B82lwMWIwTAWmgi3MQiQ"/>
-  </a>
 
   <img width="5%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
   
